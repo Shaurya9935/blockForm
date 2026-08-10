@@ -5,7 +5,7 @@ import { createUserWithEmailAndPasswordInputModel, createUserWithEmailAndPasswor
 
 const TAGS = ["Authenticate"];
 const getPath = generatePath("/authenticate");
-const authRouter = router({
+export const authRouter = router({
   createUserWithEmailAndPassword: publicProcedure
   .meta({
     openapi: {

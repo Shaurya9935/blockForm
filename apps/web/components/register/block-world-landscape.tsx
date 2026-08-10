@@ -82,7 +82,7 @@ export function BlockWorldLandscape() {
           [240, 300, 80, 210], [300, 300, 110, 190], [380, 300, 90, 215],
           [450, 300, 130, 175], [540, 300, 80, 220],
         ].map(([x, y, w, top], i) => (
-          <rect key={i} x={x} y={top} width={w} height={(y as number) - (top as number)} fill={i % 2 === 0 ? '#1e2d1a' : '#1a2816'} />
+          <rect key={i} x={x} y={top} width={w} height={Math.max(0, (y as number) - (top as number))} fill={i % 2 === 0 ? '#1e2d1a' : '#1a2816'} />
         ))}
 
         {/* Snow caps */}
@@ -95,10 +95,10 @@ export function BlockWorldLandscape() {
         {/* Mid ground hills */}
         <rect x="0" y="300" width="600" height="220" fill="#1a280e" />
         {[
-          [0, 320, 160, 300], [120, 310, 180, 300], [260, 305, 160, 300],
-          [380, 312, 180, 300], [520, 308, 80, 300],
+          [0, 300, 160, 340], [120, 290, 180, 340], [260, 295, 160, 340],
+          [380, 300, 180, 340], [520, 298, 80, 340],
         ].map(([x, top, w, bot], i) => (
-          <rect key={i} x={x} y={top} width={w} height={(bot as number) - (top as number)} fill={i % 2 === 0 ? '#1f3012' : '#1a2a0e'} />
+          <rect key={i} x={x} y={top} width={w} height={Math.max(0, (bot as number) - (top as number))} fill={i % 2 === 0 ? '#1f3012' : '#1a2a0e'} />
         ))}
 
         {/* Grass strip top */}

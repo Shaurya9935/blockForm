@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useSignUp } from "~/hooks/api/auth";
 
 // ─── Password Strength ────────────────────────────────────────────────────────
 
@@ -237,13 +238,14 @@ function StackedBlocksDecor() {
 // ─── Register Form ────────────────────────────────────────────────────────────
 
 export function RegisterForm({ onGoLogin }: { onGoLogin: () => void }) {
+  const { createUserWithEmailAndPasswordAsync, isPending } = useSignUp();
+
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPw, setShowPw] = useState(false);
   const [agreed, setAgreed] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
   const validate = () => {
@@ -255,7 +257,7 @@ export function RegisterForm({ onGoLogin }: { onGoLogin: () => void }) {
     return e;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const errs = validate();
     if (Object.keys(errs).length > 0) {
@@ -263,11 +265,16 @@ export function RegisterForm({ onGoLogin }: { onGoLogin: () => void }) {
       return;
     }
     setErrors({});
-    setSubmitting(true);
-    setTimeout(() => {
-      setSubmitting(false);
+    try {
+      await createUserWithEmailAndPasswordAsync({
+        fullName: name,
+        email,
+        password,
+      });
       setSubmitted(true);
-    }, 1600);
+    } catch (err: any) {
+      setErrors({ form: err?.message || 'Failed to create user account' });
+    }
   };
 
   if (submitted) {
@@ -330,12 +337,28 @@ export function RegisterForm({ onGoLogin }: { onGoLogin: () => void }) {
   return (
     <form onSubmit={handleSubmit} noValidate>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+        {errors.form && (
+          <div
+            style={{
+              padding: '10px 14px',
+              backgroundColor: 'rgba(220,38,38,0.1)',
+              border: '1px solid rgba(220,38,38,0.3)',
+              borderRadius: 6,
+              color: '#f87171',
+              fontSize: 13,
+              lineHeight: 1.4,
+            }}
+          >
+            ⚠ {errors.form}
+          </div>
+        )}
+
         {/* Name */}
         <InputField
           label="Full name"
           placeholder="Alex Johnson"
           value={name}
-          onChange={(v) => { setName(v); setErrors((p) => ({ ...p, name: '' })); }}
+          onChange={(v) => { setName(v); setErrors((p) => ({ ...p, name: '', form: '' })); }}
           autoComplete="name"
           error={errors.name}
         />
@@ -346,7 +369,7 @@ export function RegisterForm({ onGoLogin }: { onGoLogin: () => void }) {
           type="email"
           placeholder="you@example.com"
           value={email}
-          onChange={(v) => { setEmail(v); setErrors((p) => ({ ...p, email: '' })); }}
+          onChange={(v) => { setEmail(v); setErrors((p) => ({ ...p, email: '', form: '' })); }}
           autoComplete="email"
           error={errors.email}
         />
@@ -358,7 +381,7 @@ export function RegisterForm({ onGoLogin }: { onGoLogin: () => void }) {
             type={showPw ? 'text' : 'password'}
             placeholder="Create a strong password"
             value={password}
-            onChange={(v) => { setPassword(v); setErrors((p) => ({ ...p, password: '' })); }}
+            onChange={(v) => { setPassword(v); setErrors((p) => ({ ...p, password: '', form: '' })); }}
             autoComplete="new-password"
             error={errors.password}
             rightSlot={
@@ -382,7 +405,7 @@ export function RegisterForm({ onGoLogin }: { onGoLogin: () => void }) {
               <input
                 type="checkbox"
                 checked={agreed}
-                onChange={(e) => { setAgreed(e.target.checked); setErrors((p) => ({ ...p, agreed: '' })); }}
+                onChange={(e) => { setAgreed(e.target.checked); setErrors((p) => ({ ...p, agreed: '', form: '' })); }}
                 style={{ opacity: 0, position: 'absolute', width: 0, height: 0 }}
               />
               <div
@@ -436,18 +459,18 @@ export function RegisterForm({ onGoLogin }: { onGoLogin: () => void }) {
           </div>
           <button
             type="submit"
-            disabled={submitting}
+            disabled={isPending}
             style={{
               width: '100%',
               padding: '14px 24px',
-              backgroundColor: submitting ? '#4a8a28' : '#6abf3c',
+              backgroundColor: isPending ? '#4a8a28' : '#6abf3c',
               color: '#0d1117',
               border: 'none',
               borderRadius: 8,
               fontSize: 15,
               fontWeight: 700,
               fontFamily: "'Outfit', sans-serif",
-              cursor: submitting ? 'not-allowed' : 'pointer',
+              cursor: isPending ? 'not-allowed' : 'pointer',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -456,21 +479,21 @@ export function RegisterForm({ onGoLogin }: { onGoLogin: () => void }) {
               boxShadow: '0 4px 16px rgba(106,191,60,0.25)',
             }}
             onMouseEnter={(e) => {
-              if (!submitting) {
+              if (!isPending) {
                 (e.currentTarget as HTMLElement).style.backgroundColor = '#7dd44a';
                 (e.currentTarget as HTMLElement).style.transform = 'translateY(-1px)';
                 (e.currentTarget as HTMLElement).style.boxShadow = '0 6px 24px rgba(106,191,60,0.38)';
               }
             }}
             onMouseLeave={(e) => {
-              if (!submitting) {
+              if (!isPending) {
                 (e.currentTarget as HTMLElement).style.backgroundColor = '#6abf3c';
                 (e.currentTarget as HTMLElement).style.transform = 'translateY(0)';
                 (e.currentTarget as HTMLElement).style.boxShadow = '0 4px 16px rgba(106,191,60,0.25)';
               }
             }}
           >
-            {submitting ? (
+            {isPending ? (
               <>
                 <svg
                   width="14"
