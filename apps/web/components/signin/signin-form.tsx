@@ -2,61 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useSignUp } from "~/hooks/api/auth";
-
-// ─── Password Strength ────────────────────────────────────────────────────────
-
-function getPasswordStrength(pw: string): { level: 0 | 1 | 2 | 3; label: string } {
-  if (pw.length === 0) return { level: 0, label: '' };
-  let score = 0;
-  if (pw.length >= 8) score++;
-  if (/[A-Z]/.test(pw)) score++;
-  if (/[0-9]/.test(pw)) score++;
-  if (/[^A-Za-z0-9]/.test(pw)) score++;
-  if (score <= 1) return { level: 1, label: 'Weak' };
-  if (score === 2 || score === 3) return { level: 2, label: 'Medium' };
-  return { level: 3, label: 'Strong' };
-}
-
-function PasswordStrengthBar({ password }: { password: string }) {
-  const { level, label } = getPasswordStrength(password);
-  if (level === 0) return null;
-
-  const colors: Record<number, string> = { 1: '#dc2626', 2: '#f59e0b', 3: '#6abf3c' };
-  const color = colors[level];
-
-  return (
-    <div style={{ marginTop: 8 }}>
-      <div style={{ display: 'flex', gap: 4, marginBottom: 5 }}>
-        {[1, 2, 3].map((i) => (
-          <div
-            key={i}
-            style={{
-              flex: 1,
-              height: 3,
-              borderRadius: 2,
-              backgroundColor: i <= level ? color : '#21262d',
-              transition: 'background-color 0.3s',
-            }}
-          />
-        ))}
-      </div>
-      <div style={{ fontSize: 11, color, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 5 }}>
-        <span
-          style={{
-            display: 'inline-block',
-            width: 5,
-            height: 5,
-            borderRadius: 1,
-            backgroundColor: color,
-            imageRendering: 'pixelated',
-          }}
-        />
-        {label} password
-      </div>
-    </div>
-  );
-}
+import { useSignIn } from "~/hooks/api/auth";
 
 // ─── Input Field ──────────────────────────────────────────────────────────────
 
@@ -158,6 +104,7 @@ function OAuthButton({ label, icon, onClick }: { label: string; icon: React.Reac
   const [hov, setHov] = useState(false);
   return (
     <button
+      type="button"
       onClick={onClick}
       onMouseEnter={() => setHov(true)}
       onMouseLeave={() => setHov(false)}
@@ -236,25 +183,23 @@ function StackedBlocksDecor() {
   );
 }
 
-// ─── Register Form ────────────────────────────────────────────────────────────
+// ─── Sign In Form ──────────────────────────────────────────────────────────────
 
-export function RegisterForm({ onGoLogin }: { onGoLogin: () => void }) {
-  const { createUserWithEmailAndPasswordAsync, isPending } = useSignUp();
+export function SignInForm({ onGoSignup }: { onGoSignup?: () => void }) {
+  const router = useRouter();
+  const { signInUserWithEmailAndPasswordAsync, isPending } = useSignIn();
 
-  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPw, setShowPw] = useState(false);
-  const [agreed, setAgreed] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitted, setSubmitted] = useState(false);
 
   const validate = () => {
     const e: Record<string, string> = {};
-    if (!name.trim()) e.name = 'Full name is required';
     if (!email.trim() || !/\S+@\S+\.\S+/.test(email)) e.email = 'Enter a valid email address';
-    if (password.length < 8) e.password = 'Password must be at least 8 characters';
-    if (!agreed) e.agreed = 'You must accept the terms to continue';
+    if (!password) e.password = 'Password is required';
     return e;
   };
 
@@ -267,14 +212,16 @@ export function RegisterForm({ onGoLogin }: { onGoLogin: () => void }) {
     }
     setErrors({});
     try {
-      await createUserWithEmailAndPasswordAsync({
-        fullName: name,
+      await signInUserWithEmailAndPasswordAsync({
         email,
         password,
       });
       setSubmitted(true);
+      setTimeout(() => {
+        router.push('/home');
+      }, 1000);
     } catch (err: any) {
-      setErrors({ form: err?.message || 'Failed to create user account' });
+      setErrors({ form: err?.message || 'Invalid email or password' });
     }
   };
 
@@ -308,29 +255,12 @@ export function RegisterForm({ onGoLogin }: { onGoLogin: () => void }) {
         </div>
         <div>
           <div style={{ fontSize: 20, fontWeight: 800, color: '#eceae4', marginBottom: 8 }}>
-            Account created!
+            Signed in successfully!
           </div>
           <div style={{ fontSize: 14, color: '#6e7a8a', lineHeight: 1.6 }}>
-            Welcome to BlockForm, {name.split(' ')[0]}.
-            <br />
-            Check your email to verify your account.
+            Redirecting you to your workspace...
           </div>
         </div>
-        <button
-          style={{
-            backgroundColor: '#6abf3c',
-            color: '#0d1117',
-            border: 'none',
-            borderRadius: 8,
-            padding: '12px 28px',
-            fontSize: 14,
-            fontWeight: 700,
-            fontFamily: "'Outfit', sans-serif",
-            cursor: 'pointer',
-          }}
-        >
-          Go to Dashboard →
-        </button>
       </div>
     );
   }
@@ -354,19 +284,9 @@ export function RegisterForm({ onGoLogin }: { onGoLogin: () => void }) {
           </div>
         )}
 
-        {/* Name */}
-        <InputField
-          label="Full name"
-          placeholder="Alex Johnson"
-          value={name}
-          onChange={(v) => { setName(v); setErrors((p) => ({ ...p, name: '', form: '' })); }}
-          autoComplete="name"
-          error={errors.name}
-        />
-
         {/* Email */}
         <InputField
-          label="Email"
+          label="Email address"
           type="email"
           placeholder="you@example.com"
           value={email}
@@ -380,10 +300,10 @@ export function RegisterForm({ onGoLogin }: { onGoLogin: () => void }) {
           <InputField
             label="Password"
             type={showPw ? 'text' : 'password'}
-            placeholder="Create a strong password"
+            placeholder="Enter your password"
             value={password}
             onChange={(v) => { setPassword(v); setErrors((p) => ({ ...p, password: '', form: '' })); }}
-            autoComplete="new-password"
+            autoComplete="current-password"
             error={errors.password}
             rightSlot={
               <button
@@ -396,17 +316,16 @@ export function RegisterForm({ onGoLogin }: { onGoLogin: () => void }) {
               </button>
             }
           />
-          <PasswordStrengthBar password={password} />
         </div>
 
-        {/* Terms */}
-        <div>
-          <label style={{ display: 'flex', alignItems: 'flex-start', gap: 10, cursor: 'pointer' }}>
-            <div style={{ position: 'relative', flexShrink: 0, marginTop: 1 }}>
+        {/* Remember me & Forgot Password */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 2 }}>
+          <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
+            <div style={{ position: 'relative', flexShrink: 0 }}>
               <input
                 type="checkbox"
-                checked={agreed}
-                onChange={(e) => { setAgreed(e.target.checked); setErrors((p) => ({ ...p, agreed: '', form: '' })); }}
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
                 style={{ opacity: 0, position: 'absolute', width: 0, height: 0 }}
               />
               <div
@@ -414,8 +333,8 @@ export function RegisterForm({ onGoLogin }: { onGoLogin: () => void }) {
                   width: 18,
                   height: 18,
                   borderRadius: 4,
-                  backgroundColor: agreed ? '#6abf3c' : '#0d1117',
-                  border: `1.5px solid ${errors.agreed ? '#dc2626' : agreed ? '#6abf3c' : '#2d3741'}`,
+                  backgroundColor: rememberMe ? '#6abf3c' : '#0d1117',
+                  border: `1.5px solid ${rememberMe ? '#6abf3c' : '#2d3741'}`,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -423,29 +342,23 @@ export function RegisterForm({ onGoLogin }: { onGoLogin: () => void }) {
                   imageRendering: 'pixelated',
                 }}
               >
-                {agreed && (
+                {rememberMe && (
                   <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
                     <path d="M2 5l2.5 2.5L8 3" stroke="#0d1117" strokeWidth="1.5" strokeLinecap="round" />
                   </svg>
                 )}
               </div>
             </div>
-            <span style={{ fontSize: 13, color: '#8b9ab0', lineHeight: 1.5 }}>
-              I agree to the{' '}
-              <a href="#" style={{ color: '#6abf3c', textDecoration: 'none' }}>Terms of Service</a>
-              {' '}and{' '}
-              <a href="#" style={{ color: '#6abf3c', textDecoration: 'none' }}>Privacy Policy</a>
-            </span>
+            <span style={{ fontSize: 13, color: '#8b9ab0' }}>Remember me</span>
           </label>
-          {errors.agreed && (
-            <div style={{ fontSize: 12, color: '#dc2626', marginTop: 6, marginLeft: 28 }}>
-              ⚠ {errors.agreed}
-            </div>
-          )}
+
+          <a href="#" style={{ fontSize: 13, color: '#6abf3c', textDecoration: 'none', fontWeight: 600 }}>
+            Forgot password?
+          </a>
         </div>
 
         {/* Submit CTA */}
-        <div>
+        <div style={{ marginTop: 4 }}>
           <div
             style={{
               fontFamily: "'Press Start 2P', monospace",
@@ -456,7 +369,7 @@ export function RegisterForm({ onGoLogin }: { onGoLogin: () => void }) {
               textAlign: 'center',
             }}
           >
-            READY TO BUILD?
+            WELCOME BACK
           </div>
           <button
             type="submit"
@@ -507,11 +420,11 @@ export function RegisterForm({ onGoLogin }: { onGoLogin: () => void }) {
                 >
                   <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
                 </svg>
-                Building your account...
+                Signing in...
               </>
             ) : (
               <>
-                Create Account
+                Sign In
                 <span style={{ fontSize: 18 }}>→</span>
               </>
             )}
@@ -534,12 +447,12 @@ export function RegisterForm({ onGoLogin }: { onGoLogin: () => void }) {
           <OAuthButton label="Apple" icon={<AppleIcon />} />
         </div>
 
-        {/* Login link */}
+        {/* Signup link */}
         <p style={{ margin: 0, textAlign: 'center', fontSize: 13, color: '#6e7a8a' }}>
-          Already have an account?{' '}
+          Don't have an account?{' '}
           <button
             type="button"
-            onClick={onGoLogin}
+            onClick={onGoSignup || (() => router.push('/signup'))}
             style={{
               background: 'none',
               border: 'none',
@@ -551,7 +464,7 @@ export function RegisterForm({ onGoLogin }: { onGoLogin: () => void }) {
               padding: 0,
             }}
           >
-            Log in
+            Sign up
           </button>
         </p>
       </div>
@@ -561,7 +474,7 @@ export function RegisterForm({ onGoLogin }: { onGoLogin: () => void }) {
 
 // ─── Right Panel (card + decorations) ────────────────────────────────────────
 
-export function RegisterRightPanel() {
+export function SignInRightPanel() {
   const router = useRouter();
 
   return (
@@ -622,7 +535,7 @@ export function RegisterRightPanel() {
               <rect x="0" y="4" width="4" height="4" fill="#5aad32" />
             </svg>
             <span style={{ fontFamily: "'Press Start 2P', monospace", fontSize: 7, color: '#6abf3c', letterSpacing: '0.5px' }}>
-              NEW ACCOUNT
+              SIGN IN
             </span>
           </div>
 
@@ -636,15 +549,15 @@ export function RegisterRightPanel() {
               lineHeight: 1.2,
             }}
           >
-            Create your account
+            Welcome back
           </h1>
           <p style={{ margin: 0, fontSize: 14, color: '#6e7a8a', lineHeight: 1.6 }}>
-            Start building your first form in minutes.
+            Sign in to continue building your forms.
           </p>
         </div>
 
-        {/* Registration form */}
-        <RegisterForm onGoLogin={() => router.push('/signin')} />
+        {/* Sign in form */}
+        <SignInForm onGoSignup={() => router.push('/signup')} />
       </div>
 
       {/* Footer note */}
