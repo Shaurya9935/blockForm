@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Outfit:wght@300;400;500;600;700;800&display=swap');
 @import "tailwindcss";
 @import "tw-animate-css";
 
@@ -120,4 +121,72 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+/* ─── BlockForm Landing Page Styles ─────────────────────────────────────────── */
+
+@keyframes bf-float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-8px); }
+}
+
+@keyframes bf-float-slow {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-12px) rotate(1deg); }
+}
+
+@keyframes bf-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+@keyframes bf-slide-up {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.bf-animate-float { animation: bf-float 4s ease-in-out infinite; }
+.bf-animate-float-slow { animation: bf-float-slow 6s ease-in-out infinite; }
+.bf-animate-blink { animation: bf-blink 1.2s step-end infinite; }
+.bf-animate-slide-up { animation: bf-slide-up 0.6s ease-out forwards; }
+
+/* Responsive helpers */
+@media (max-width: 1024px) {
+  .bf-hero-grid { grid-template-columns: 1fr !important; }
+  .bf-features-grid { grid-template-columns: repeat(2, 1fr) !important; }
+  .bf-worlds-grid { grid-template-columns: repeat(3, 1fr) !important; }
+  .bf-stats-grid { grid-template-columns: repeat(2, 1fr) !important; }
+  .bf-footer-grid { grid-template-columns: 1fr 1fr !important; }
+  .bf-progression-layout { flex-direction: column !important; }
+}
+
+@media (max-width: 640px) {
+  .bf-features-grid { grid-template-columns: 1fr !important; }
+  .bf-worlds-grid { grid-template-columns: repeat(2, 1fr) !important; }
+  .bf-stats-grid { grid-template-columns: repeat(2, 1fr) !important; }
+  .bf-footer-grid { grid-template-columns: 1fr !important; }
+  .bf-hidden-mobile { display: none !important; }
+  .bf-show-mobile { display: flex !important; }
+}
+
+@media (min-width: 641px) {
+  .bf-show-mobile { display: none !important; }
+}
+
+/* ─── Register Page Styles ───────────────────────────────────────────────────── */
+
+@keyframes reg-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+@media (max-width: 900px) {
+  .register-split { flex-direction: column !important; }
+  .register-left  { display: none !important; }
+  .register-right {
+    width: 100% !important;
+    min-height: 100vh !important;
+    padding: 32px 20px 48px !important;
+  }
+  .register-logo-mobile { display: flex !important; }
 }
