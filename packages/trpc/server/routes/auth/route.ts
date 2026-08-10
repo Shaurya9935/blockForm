@@ -1,7 +1,10 @@
+import { signInUserWithEmailAndPasswordInput } from "@repo/services/user/model";
 import { userService } from "../../services";
 import { publicProcedure, router } from "../../trpc";
 import { generatePath } from "../../utils/path-generator";
-import { createUserWithEmailAndPasswordInputModel, createUserWithEmailAndPasswordOutputModel } from "./model";
+import { createUserWithEmailAndPasswordInputModel, createUserWithEmailAndPasswordOutputModel, signInUserWithEmailAndPasswordInputModel, signInUserWithEmailAndPasswordOutputModel } from "./model";
+import { setAuthenticationCookie } from "../../utils/cookie";
+
 
 const TAGS = ["Authenticate"];
 const getPath = generatePath("/authenticate");
@@ -16,13 +19,37 @@ export const authRouter = router({
   })
   .input(createUserWithEmailAndPasswordInputModel)
   .output(createUserWithEmailAndPasswordOutputModel)
-  .mutation(async({input})=> {
+  .mutation(async({input, ctx})=> {
     const {fullName, email, password} = input;
-    const { id } = await userService.createUserWithEmailAndPassword({
+    const { id, token } = await userService.createUserWithEmailAndPassword({
       fullName,
       email,
       password
     });
+
+    setAuthenticationCookie(ctx, token)
+
+    return {
+      id
+    }
+  }),
+
+  signInUserWithEmailAndPassword: publicProcedure
+  .meta({
+    openapi: {
+      method: "POST",
+      path: getPath("/signInUserWithEmailAndPassword"),
+      tags: TAGS
+    }
+  })
+  .input(signInUserWithEmailAndPasswordInputModel)
+  .output(signInUserWithEmailAndPasswordOutputModel)
+  .mutation(async({input, ctx}) => {
+    const {email, password} = input
+
+    const {id, token} = await userService.signInUserWithEmailAndPassword({email, password});
+
+    setAuthenticationCookie(ctx, token)
 
     return {
       id
