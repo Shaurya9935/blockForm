@@ -81,6 +81,19 @@ class UserService {
         const { id } = await this.verifyUserToken(token);
         return { id }
     }
+
+    public async getUserInfoById(id: string){
+        const user = await db.select({
+            id: usersTable.id,
+            fullName: usersTable.fullName,
+            email: usersTable.email,
+            profileImageUrl: usersTable.profileImageUrl
+        }).from(usersTable).where(eq(usersTable.id, id))
+
+        if(!user || user.length === 0) throw new Error(`User with id: ${id} does not exists`);
+
+        return user[0]!;
+    }
 }
 
 export default UserService;

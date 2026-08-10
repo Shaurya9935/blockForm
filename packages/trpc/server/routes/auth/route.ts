@@ -1,8 +1,9 @@
+import { TRPCError } from "@trpc/server";
 import { signInUserWithEmailAndPasswordInput } from "@repo/services/user/model";
 import { userService } from "../../services";
-import { publicProcedure, router } from "../../trpc";
+import { authenticatedProcedure, publicProcedure, router } from "../../trpc";
 import { generatePath } from "../../utils/path-generator";
-import { createUserWithEmailAndPasswordInputModel, createUserWithEmailAndPasswordOutputModel, signInUserWithEmailAndPasswordInputModel, signInUserWithEmailAndPasswordOutputModel } from "./model";
+import { createUserWithEmailAndPasswordInputModel, createUserWithEmailAndPasswordOutputModel, getLoggedInUserInfoInputModel, getLoggedInUserInfoOutputModel, signInUserWithEmailAndPasswordInputModel, signInUserWithEmailAndPasswordOutputModel } from "./model";
 import { setAuthenticationCookie } from "../../utils/cookie";
 
 
@@ -53,6 +54,27 @@ export const authRouter = router({
 
     return {
       id
+    }
+  }),
+  getLoggedInUserInfo: authenticatedProcedure
+  .meta({
+    openapi: {
+      method: 'POST',
+      path: getPath("/getLoggedInUserInfo"),
+      tags: TAGS,
+      protect: true
+    }
+  })
+  .input(getLoggedInUserInfoInputModel)
+  .output(getLoggedInUserInfoOutputModel)
+  .query(async({ctx}) => {
+    const {id, email, fullName, profileImageUrl} = await userService.getUserInfoById(ctx.user.id);
+
+    return {
+      id,
+      email,
+      fullName,
+      profileImageUrl
     }
   })
 })

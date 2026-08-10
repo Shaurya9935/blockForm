@@ -1,5 +1,5 @@
-import type {CookieOptions, Response, Request} from 'express'
-import { TRPCContext } from '../context';
+import type { CookieOptions, Response, Request } from "express";
+import { TRPCContext } from "../context";
 
 const ONE_MINUTE = 60 * 1000;
 const ONE_HOUR = 60 * ONE_MINUTE;
@@ -8,44 +8,55 @@ const ONE_MONTH = 30 * ONE_DAY;
 const ONE_YEAR = 12 * ONE_MONTH;
 
 const defaultCookieOption: CookieOptions = {
-    path: "/",
-    httpOnly: true,
-    secure: false,
-    sameSite: "strict",
-    maxAge: ONE_YEAR
+  path: "/",
+  httpOnly: true,
+  secure: false,
+  sameSite: "strict",
+  maxAge: ONE_YEAR,
 };
 
 export function createCookieFactory(res: Response) {
-    return function createCookie(
-        name: string,
-        value: string,
-        opts: CookieOptions = defaultCookieOption
-    ) {
-        res.cookie(name, value, opts)
-    }
+  return function createCookie(
+    name: string,
+    value: string,
+    opts: CookieOptions = defaultCookieOption,
+  ) {
+    res.cookie(name, value, opts);
+  };
 }
 
 export function getCookieFactory(req: Request) {
-    return function clearCookie(name: string) {
-        return req.cookies?.[name];
+  return function getCookie(name: string): string | undefined {
+    if (req.cookies && req.cookies[name]) {
+      return req.cookies[name];
     }
+    const cookieHeader = req.headers.cookie;
+    if (!cookieHeader) return undefined;
+    const cookies = Object.fromEntries(
+      cookieHeader.split(";").map((c) => {
+        const [key, ...v] = c.trim().split("=");
+        return [key, v.join("=")];
+      })
+    );
+    return cookies[name];
+  };
 }
 
 export function clearCookieFactory(res: Response) {
-    return function clearCookie(name: string) {
-        res.clearCookie(name);
-    }
+  return function clearCookie(name: string) {
+    res.clearCookie(name);
+  };
 }
 
 // Authentication Cookie
-const AUTHENTICATE_COOKIE_NAME = 'authentication-token'
+const AUTHENTICATE_COOKIE_NAME = "authentication-token";
 
-export function setAuthenticationCookie (ctx: TRPCContext, accessToken: string){
-    return ctx.createCookie(AUTHENTICATE_COOKIE_NAME, accessToken)
+export function setAuthenticationCookie(ctx: TRPCContext, accessToken: string) {
+  return ctx.createCookie(AUTHENTICATE_COOKIE_NAME, accessToken);
 }
-export function getAuthenticationCookie (ctx: TRPCContext) {
-    return ctx.getCookie(AUTHENTICATE_COOKIE_NAME)
+export function getAuthenticationCookie(ctx: TRPCContext) {
+  return ctx.getCookie(AUTHENTICATE_COOKIE_NAME);
 }
-export function clearAuthenticationCookie (ctx: TRPCContext) {
-    ctx.getCookie(AUTHENTICATE_COOKIE_NAME)
+export function clearAuthenticationCookie(ctx: TRPCContext) {
+  ctx.clearCookie(AUTHENTICATE_COOKIE_NAME);
 }
