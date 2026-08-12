@@ -6,8 +6,15 @@ export type FieldType = z.infer<typeof fieldTypeEnum>;
 export const createFormFieldInput = z.object({
   formId: z.string().uuid("Invalid form ID"),
   label: z.string().min(1, "Label is required").max(100, "Label cannot exceed 100 characters"),
-  labelKey: z.string().min(1, "Label key is required").max(100, "Label key cannot exceed 100 characters"),
-  description: z.string().max(300, "Description cannot exceed 300 characters").optional().default(""),
+  labelKey: z
+    .string()
+    .min(1, "Label key is required")
+    .max(100, "Label key cannot exceed 100 characters"),
+  description: z
+    .string()
+    .max(300, "Description cannot exceed 300 characters")
+    .optional()
+    .default(""),
   placeholder: z.string().optional().nullable(),
   isRequired: z.boolean().optional().default(false),
   index: z.string().describe("Fractional index for ordering"),
@@ -27,7 +34,7 @@ export const bulkCreateFormFieldsInput = z.object({
       isRequired: z.boolean().optional().default(false),
       index: z.string(),
       type: fieldTypeEnum,
-    })
+    }),
   ),
 });
 

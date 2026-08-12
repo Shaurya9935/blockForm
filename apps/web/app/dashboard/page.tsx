@@ -11,7 +11,7 @@ import { FormCard, EmptyForms, FORMS } from '~/components/dashboard/form-cards'
 import { BlueprintCard, BLUEPRINTS } from '~/components/dashboard/blueprint-cards'
 import { ActivityFeed } from '~/components/dashboard/activity-feed'
 import { AnalyticsCard } from '~/components/dashboard/analytics-card'
-import { CreateFormModal } from '~/components/dashboard/create-form-modal'
+import { BlockFormBuilder } from '~/components/dashboard/block-form-builder'
 import { IconPlus } from '~/components/dashboard/icons'
 import { useGetForms } from '~/hooks/api/form'
 
@@ -20,11 +20,11 @@ export default function DashboardPage({ onBack }: { onBack?: () => void }) {
   const [activeNav, setActiveNav] = useState('dashboard')
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [useMockData, setUseMockData] = useState(false)
-  const [createModalOpen, setCreateModalOpen] = useState(false)
+  const [builderOpen, setBuilderOpen] = useState(false)
 
   const { forms, isLoading, isError, error } = useGetForms()
 
-  const handleCreateForm = () => setCreateModalOpen(true)
+  const handleCreateForm = () => setBuilderOpen(true)
 
   const handleNav = (id: string) => {
     setActiveNav(id)
@@ -267,8 +267,10 @@ export default function DashboardPage({ onBack }: { onBack?: () => void }) {
         </div>
       </div>
 
-      {/* Create Form Modal */}
-      {createModalOpen && <CreateFormModal onClose={() => setCreateModalOpen(false)} />}
+      {/* BlockForm Builder — full-screen overlay */}
+      {builderOpen && (
+        <BlockFormBuilder onClose={() => setBuilderOpen(false)} />
+      )}
     </>
   )
 }
