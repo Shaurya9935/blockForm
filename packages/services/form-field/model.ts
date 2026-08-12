@@ -1,6 +1,16 @@
 import { z } from "zod";
 
-export const fieldTypeEnum = z.enum(["TEXT", "NUMBER", "EMAIL", "YES_NO", "PASSWORD"]);
+export const fieldTypeEnum = z.enum([
+  "TEXT",
+  "NUMBER",
+  "EMAIL",
+  "YES_NO",
+  "PASSWORD",
+  "SELECT",
+  "CHECKBOX",
+  "RATING",
+  "DATE",
+]);
 export type FieldType = z.infer<typeof fieldTypeEnum>;
 
 export const createFormFieldInput = z.object({

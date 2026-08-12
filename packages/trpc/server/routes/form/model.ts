@@ -25,7 +25,17 @@ export const listMyFormsOutputModel = z.array(
 
 // Form Fields Object & Enums
 
-export const fieldTypeEnum = z.enum(['TEXT', 'NUMBER', 'EMAIL', 'YES_NO', 'PASSWORD'])
+export const fieldTypeEnum = z.enum([
+  'TEXT',
+  'NUMBER',
+  'EMAIL',
+  'YES_NO',
+  'PASSWORD',
+  'SELECT',
+  'CHECKBOX',
+  'RATING',
+  'DATE',
+])
 
 export const formFieldObject = z.object({
     id: z.string().describe('ID of the field'),
@@ -36,6 +46,10 @@ export const formFieldObject = z.object({
     placeholder: z.string().nullable().optional(),
     isRequired: z.boolean(),
     index: z.string().describe('Fractional index for ordering'),
+    config: z.any().optional().nullable(),
+    workflowX: z.number().optional().nullable(),
+    workflowY: z.number().optional().nullable(),
+    formId: z.string().optional().nullable(),
     createdAt: z.date().optional().nullable(),
     updatedAt: z.date().optional().nullable(),
 })

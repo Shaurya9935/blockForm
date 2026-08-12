@@ -60,8 +60,8 @@ const createBlock = (type: BlockType): FormBlock => ({
   maxRating: 5,
 })
 
-const labelKeyFromQuestion = (q: string) =>
-  q.toLowerCase().replace(/[^a-z0-9]+/g, '_').slice(0, 50) || 'field'
+const labelKeyFromQuestion = (q: string, idx: number) =>
+  `${q.toLowerCase().replace(/[^a-z0-9]+/g, '_').slice(0, 35) || 'field'}_${idx + 1}`
 
 const fractionalIndex = (idx: number, total: number) => {
   const base = String.fromCharCode(97 + (idx % 26))
@@ -807,12 +807,14 @@ export const BlockFormBuilder: React.FC<BlockFormBuilderProps> = ({ onClose }) =
   const [dropTarget, setDropTarget] = useState<number | null>(null)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(true)
+  const [previewModalOpen, setPreviewModalOpen] = useState(false)
+  const [publishedFormId, setPublishedFormId] = useState<string | null>(null)
 
   const questionRefs = useRef<Map<string, HTMLTextAreaElement>>(new Map())
   const titleInputRef = useRef<HTMLInputElement>(null)
 
   const { createFormAsync } = useCreateForm()
-  const { createFormFieldAsync } = useCreateFormField()
+  const { bulkCreateFormFieldsAsync } = useBulkCreateFormFields()
 
   const selectedBlock = blocks.find(b => b.id === selectedId) ?? null
 
@@ -878,24 +880,29 @@ export const BlockFormBuilder: React.FC<BlockFormBuilderProps> = ({ onClose }) =
     setSaving(true)
     try {
       const { id: formId } = await createFormAsync({ title: formTitle.trim() })
-      for (let i = 0; i < blocks.length; i++) {
-        const b = blocks[i]!
-        await createFormFieldAsync({
-          formId,
-          label: b.question || `${BLOCK_TYPES.find(bt => bt.type === b.type)?.label} Field`,
-          labelKey: labelKeyFromQuestion(b.question || b.type.toLowerCase()),
-          description: b.description || '',
-          placeholder: b.placeholder || undefined,
-          isRequired: b.required,
-          index: fractionalIndex(i, blocks.length),
-          type: b.type as any,
-        })
-      }
+
+      const fieldsToCreate = blocks.map((b, i) => ({
+        label: b.question || `${BLOCK_TYPES.find(bt => bt.type === b.type)?.label || 'Field'} Question`,
+        labelKey: labelKeyFromQuestion(b.question || b.type.toLowerCase(), i),
+        description: b.description || '',
+        placeholder: b.placeholder || undefined,
+        isRequired: Boolean(b.required),
+        index: String(i + 1),
+        type: b.type as any,
+      }))
+
+      await bulkCreateFormFieldsAsync({
+        formId,
+        fields: fieldsToCreate,
+      })
+
       setSaved(true)
+      setPublishedFormId(formId)
       toast.success('🎉 Form published successfully!')
       onClose()
       router.push('/dashboard/forms')
     } catch (err: any) {
+      console.error('Publish form error:', err)
       toast.error(err?.message || 'Failed to publish form')
     } finally {
       setSaving(false)
@@ -913,6 +920,7 @@ export const BlockFormBuilder: React.FC<BlockFormBuilderProps> = ({ onClose }) =
       if (e.key === 'Escape') {
         setPickerOpen(false)
         setMenuOpen(null)
+        setPreviewModalOpen(false)
       }
     }
     window.addEventListener('keydown', handler)
@@ -970,14 +978,27 @@ export const BlockFormBuilder: React.FC<BlockFormBuilderProps> = ({ onClose }) =
           {/* Right: Action buttons */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <button
-              onClick={() => { if (blocks.length > 0) { const formId = 'preview'; router.push(`/form/${formId}`) } else { toast.info('Add at least one block to preview') } }}
+              onClick={() => {
+                if (blocks.length > 0) {
+                  setPreviewModalOpen(true)
+                } else {
+                  toast.info('Add at least one block to preview')
+                }
+              }}
               style={{ background: 'none', border: '1px solid #21262d', borderRadius: 7, color: '#c8d8b8', fontSize: 13, fontWeight: 600, cursor: 'pointer', padding: '6px 14px', fontFamily: "'Outfit', sans-serif" }}
             >
-              Preview
+              👁 Preview
             </button>
             <button
               style={{ background: 'none', border: '1px solid #21262d', borderRadius: 7, color: '#c8d8b8', fontSize: 13, fontWeight: 600, cursor: 'pointer', padding: '6px 14px', fontFamily: "'Outfit', sans-serif" }}
-              onClick={() => { if (blocks.length === 0) { toast.info('Build a form first to share it') } else { toast.info('Publish the form first to get a share link') } }}
+              onClick={() => {
+                if (publishedFormId) {
+                  navigator.clipboard.writeText(`${window.location.origin}/form/${publishedFormId}`)
+                  toast.success('Form link copied to clipboard!')
+                } else {
+                  toast.info('Publish the form first to get a share link')
+                }
+              }}
             >
               Share
             </button>
@@ -1154,6 +1175,122 @@ export const BlockFormBuilder: React.FC<BlockFormBuilderProps> = ({ onClose }) =
           <RightPanel block={selectedBlock} onUpdate={updates => selectedId && updateBlock(selectedId, updates)} />
         </div>
       </div>
+
+      {/* Live Form Preview Modal */}
+      {previewModalOpen && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 1100,
+            backgroundColor: 'rgba(11,15,20,0.85)',
+            backdropFilter: 'blur(8px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 20,
+          }}
+          onClick={() => setPreviewModalOpen(false)}
+        >
+          <div
+            style={{
+              width: '100%',
+              maxWidth: 580,
+              maxHeight: '90vh',
+              overflowY: 'auto',
+              backgroundColor: '#161b22',
+              border: '1px solid #21262d',
+              borderRadius: 16,
+              padding: 32,
+              boxShadow: '0 24px 60px rgba(0,0,0,0.7)',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #21262d', paddingBottom: 16, marginBottom: 24 }}>
+              <div>
+                <span style={{ fontSize: 11, fontWeight: 800, color: '#6abf3c', letterSpacing: '0.5px' }}>LIVE PREVIEW</span>
+                <h2 style={{ margin: '4px 0 0', fontSize: 20, fontWeight: 800, color: '#eceae4' }}>{formTitle}</h2>
+              </div>
+              <button
+                onClick={() => setPreviewModalOpen(false)}
+                style={{ background: 'none', border: 'none', color: '#6e7a8a', fontSize: 20, cursor: 'pointer', padding: '4px 8px' }}
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={(e) => { e.preventDefault(); toast.success('Form response preview submitted!') }}>
+              {blocks.map((block, idx) => (
+                <div key={block.id} style={{ marginBottom: 20 }}>
+                  <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#c8d8b8', marginBottom: 6 }}>
+                    {idx + 1}. {block.question || 'Untitled Question'} {block.required && <span style={{ color: '#ef4444' }}>*</span>}
+                  </label>
+                  {block.description && (
+                    <div style={{ fontSize: 12, color: '#4e5a6a', marginBottom: 6 }}>{block.description}</div>
+                  )}
+
+                  {block.type === 'SELECT' || block.type === 'CHECKBOX' ? (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                      {(block.options || []).map((opt) => (
+                        <label
+                          key={opt.id}
+                          style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', backgroundColor: '#0d1117', border: '1px solid #21262d', borderRadius: 6, color: '#eceae4', fontSize: 13, cursor: 'pointer' }}
+                        >
+                          <input type={block.type === 'CHECKBOX' ? 'checkbox' : 'radio'} name={block.id} value={opt.value} />
+                          {opt.value || 'Option'}
+                        </label>
+                      ))}
+                    </div>
+                  ) : block.type === 'RATING' ? (
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      {Array.from({ length: block.maxRating || 5 }).map((_, i) => (
+                        <span key={i} style={{ fontSize: 24, color: '#4e5a6a', cursor: 'pointer' }}>★</span>
+                      ))}
+                    </div>
+                  ) : (
+                    <input
+                      type={block.type === 'NUMBER' ? 'number' : block.type === 'EMAIL' ? 'email' : block.type === 'DATE' ? 'date' : 'text'}
+                      placeholder={block.placeholder || 'Type response...'}
+                      required={block.required}
+                      style={{
+                        width: '100%',
+                        padding: '10px 14px',
+                        backgroundColor: '#0d1117',
+                        border: '1px solid #21262d',
+                        borderRadius: 8,
+                        color: '#eceae4',
+                        fontSize: 14,
+                        fontFamily: "'Outfit', sans-serif",
+                        outline: 'none',
+                        boxSizing: 'border-box',
+                      }}
+                    />
+                  )}
+                </div>
+              ))}
+
+              <button
+                type="submit"
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  backgroundColor: '#6abf3c',
+                  color: '#0d1117',
+                  border: 'none',
+                  borderRadius: 8,
+                  fontSize: 14,
+                  fontWeight: 800,
+                  cursor: 'pointer',
+                  marginTop: 12,
+                  fontFamily: "'Outfit', sans-serif",
+                }}
+              >
+                Submit Response Preview
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
     </>
   )
 }
