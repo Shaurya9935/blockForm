@@ -1,0 +1,48 @@
+import { trpc } from '~/trpc/client'
+
+export const useCreateForm = () => {
+    const utils = trpc.useUtils()
+
+    const {
+        mutateAsync: createFormAsync,
+        mutate: createForm,
+        error,
+        failureCount,
+        isError,
+        isIdle,
+        isPending,
+        isSuccess,
+        status
+    } = trpc.form.createForm.useMutation({
+        onSuccess: async () => {
+            await utils.form.invalidate()
+        }
+    });
+
+    return {
+        createForm,
+        createFormAsync,
+        error,
+        failureCount,
+        isError,
+        isIdle,
+        isSuccess,
+        isPending,
+        status
+    }
+}
+
+export const useGetForms = () => {
+    const { data: forms, error, isFetched, isFetching, isLoading, isError, status } = trpc.form.listForms.useQuery()
+
+    return {
+        forms,
+        error,
+        isFetched,
+        isFetching,
+        isLoading,
+        isError,
+        status
+    }
+}
+

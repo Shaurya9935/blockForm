@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { optional, z } from "zod";
 
 
 export const createFormInputModel = z.object({
@@ -9,3 +9,17 @@ export const createFormInputModel = z.object({
 export const createFormOutputModel = z.object({
     id: z.string().describe('uuid of the created form')
 })
+
+export const listMyFormsInputModel = z.object({
+    userId: z.string().describe('uuid of the user who created form').optional()
+}).optional()
+
+export const listMyFormsOutputModel = z.array(
+    z.object({
+        id: z.string().uuid().describe('id of the form'),
+        title: z.string().describe('title of the form'),
+        description: z.string().nullable().optional().describe('description of the form'),
+        createdAt: z.date().optional().nullable().describe('Creation timestamp'),
+        updatedAt: z.date().optional().nullable().describe('Last Updated timestamp')
+    })
+)
