@@ -12,7 +12,7 @@ export const formsTable = pgTable('forms_table', {
     id: uuid('id').primaryKey().defaultRandom(),
 
     title: varchar('title', {length: 50}).notNull(),
-    description: varchar('description', {length: 300}).notNull(),
+    description: varchar('description', {length: 300}),
 
     createdBy: uuid('created_by').references(()=> usersTable.id),
 

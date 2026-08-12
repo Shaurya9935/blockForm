@@ -1,0 +1,1 @@
+ALTER TABLE "forms_table" ALTER COLUMN "description" DROP NOT NULL;

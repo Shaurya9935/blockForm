@@ -15,6 +15,13 @@
       "when": 1786464778247,
       "tag": "0001_sloppy_romulus",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1786474765920,
+      "tag": "0002_large_gateway",
+      "breakpoints": true
     }
   ]
 }
