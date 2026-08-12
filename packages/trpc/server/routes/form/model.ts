@@ -1,5 +1,4 @@
-import { optional, z } from "zod";
-
+import { z } from "zod";
 
 export const createFormInputModel = z.object({
     title: z.string().describe('Title of the form').min(1, 'Title is required').max(55, 'title cannot be exceed 55 charcters'),
@@ -23,3 +22,101 @@ export const listMyFormsOutputModel = z.array(
         updatedAt: z.date().optional().nullable().describe('Last Updated timestamp')
     })
 )
+
+// Form Fields Object & Enums
+
+export const fieldTypeEnum = z.enum(['TEXT', 'NUMBER', 'EMAIL', 'YES_NO', 'PASSWORD'])
+
+export const formFieldObject = z.object({
+    id: z.string().describe('ID of the field'),
+    label: z.string().describe('Display label'),
+    labelKey: z.string().describe('Immutable slug key'),
+    type: fieldTypeEnum,
+    description: z.string().nullable().optional(),
+    placeholder: z.string().nullable().optional(),
+    isRequired: z.boolean(),
+    index: z.string().describe('Fractional index for ordering'),
+    createdAt: z.date().optional().nullable(),
+    updatedAt: z.date().optional().nullable(),
+})
+
+export const getFormInputModel = z.object({
+    formId: z.string().uuid().describe('UUID of the form'),
+})
+
+export const getFormOutputModel = z.object({
+    id: z.string(),
+    title: z.string(),
+    description: z.string().nullable().optional(),
+    createdAt: z.date().nullable(),
+    updatedAt: z.date().nullable(),
+    fields: z.array(formFieldObject),
+}).nullable()
+
+// Form Field Procedures Input/Output Models
+
+export const createFormFieldInputModel = z.object({
+    formId: z.string().uuid('Invalid form ID'),
+    label: z.string().min(1, 'Label is required').max(100, 'Label cannot exceed 100 characters'),
+    labelKey: z.string().min(1, 'Label key is required').max(100, 'Label key cannot exceed 100 characters'),
+    description: z.string().max(300, 'Description cannot exceed 300 characters').optional().default(''),
+    placeholder: z.string().optional().nullable(),
+    isRequired: z.boolean().optional().default(false),
+    index: z.string().describe('Fractional index for ordering'),
+    type: fieldTypeEnum,
+})
+
+export const createFormFieldOutputModel = z.object({
+    id: z.string().describe('UUID of the created form field')
+})
+
+export const bulkCreateFormFieldsInputModel = z.object({
+    formId: z.string().uuid('Invalid form ID'),
+    fields: z.array(
+        z.object({
+            label: z.string().min(1, 'Label is required').max(100),
+            labelKey: z.string().min(1, 'Label key is required').max(100),
+            description: z.string().max(300).optional().default(''),
+            placeholder: z.string().optional().nullable(),
+            isRequired: z.boolean().optional().default(false),
+            index: z.string(),
+            type: fieldTypeEnum,
+        })
+    ),
+})
+
+export const bulkCreateFormFieldsOutputModel = z.array(formFieldObject)
+
+export const listFormFieldsInputModel = z.object({
+    formId: z.string().uuid('Invalid form ID'),
+})
+
+export const listFormFieldsOutputModel = z.array(formFieldObject)
+
+export const getFormFieldInputModel = z.object({
+    id: z.string().uuid('Invalid field ID'),
+})
+
+export const getFormFieldOutputModel = formFieldObject
+
+export const updateFormFieldInputModel = z.object({
+    id: z.string().uuid('Invalid field ID'),
+    label: z.string().min(1).max(100).optional(),
+    labelKey: z.string().min(1).max(100).optional(),
+    description: z.string().max(300).optional(),
+    placeholder: z.string().optional().nullable(),
+    isRequired: z.boolean().optional(),
+    index: z.string().optional(),
+    type: fieldTypeEnum.optional(),
+})
+
+export const updateFormFieldOutputModel = formFieldObject
+
+export const deleteFormFieldInputModel = z.object({
+    id: z.string().uuid('Invalid field ID'),
+})
+
+export const deleteFormFieldOutputModel = z.object({
+    id: z.string(),
+    success: z.boolean(),
+})

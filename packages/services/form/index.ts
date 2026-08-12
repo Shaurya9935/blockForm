@@ -1,7 +1,8 @@
-import db, { eq } from "@repo/database";
+import db, { asc, eq } from "@repo/database";
 import { formsTable } from '@repo/database/models/form'
+import { formFieldsTable } from '@repo/database/models/form-field'
 
-import { createFormInput, createFormInputType, listFormsByUserIdInput, listFormsByUserIdInputType } from "./model";
+import { createFormInput, createFormInputType, getFormByIdInput, GetFormByIdInputType, listFormsByUserIdInput, listFormsByUserIdInputType } from "./model";
 
 
 class FormService { 
@@ -41,6 +42,58 @@ class FormService {
 
         return forms
     }
+      public async getFormById(payload: GetFormByIdInputType) {
+    const { formId } = await getFormByIdInput.parseAsync(payload)
+
+    const rows = await db
+      .select({
+        formId: formsTable.id,
+        title: formsTable.title,
+        description: formsTable.description,
+        createdAt: formsTable.createdAt,
+        updatedAt: formsTable.updatedAt,
+        fieldId: formFieldsTable.id,
+        fieldLabel: formFieldsTable.label,
+        fieldLabelKey: formFieldsTable.labelKey,
+        fieldType: formFieldsTable.type,
+        fieldDescription: formFieldsTable.description,
+        fieldPlaceholder: formFieldsTable.placeholder,
+        fieldIsRequired: formFieldsTable.isRequired,
+        fieldIndex: formFieldsTable.index,
+      })
+      .from(formsTable)
+      .leftJoin(formFieldsTable, eq(formsTable.id, formFieldsTable.formId))
+      .where(eq(formsTable.id, formId))
+      .orderBy(asc(formFieldsTable.index))
+
+    if (!rows || rows.length === 0) {
+      return null
+    }
+
+    const firstRow = rows[0]!
+
+    const fields = rows
+      .filter((row) => row.fieldId !== null)
+      .map((row) => ({
+        id: row.fieldId!,
+        label: row.fieldLabel!,
+        labelKey: row.fieldLabelKey!,
+        type: row.fieldType!,
+        description: row.fieldDescription ?? null,
+        placeholder: row.fieldPlaceholder ?? null,
+        isRequired: row.fieldIsRequired!,
+        index: row.fieldIndex!,
+      }))
+
+    return {
+      id: firstRow.formId,
+      title: firstRow.title,
+      description: firstRow.description ?? null,
+      createdAt: firstRow.createdAt,
+      updatedAt: firstRow.updatedAt,
+      fields,
+    }
+  }
 }
 
 
