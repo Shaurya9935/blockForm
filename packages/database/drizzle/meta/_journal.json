@@ -22,6 +22,13 @@
       "when": 1786474765920,
       "tag": "0002_large_gateway",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1786521933325,
+      "tag": "0003_large_boom_boom",
+      "breakpoints": true
     }
   ]
 }

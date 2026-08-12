@@ -9,18 +9,28 @@ import {
   createFormOutputModel,
   deleteFormFieldInputModel,
   deleteFormFieldOutputModel,
+  deleteSubmissionInputModel,
+  deleteSubmissionOutputModel,
   getFormFieldInputModel,
   getFormFieldOutputModel,
   getFormInputModel,
   getFormOutputModel,
+  getSubmissionInputModel,
+  getSubmissionOutputModel,
   listFormFieldsInputModel,
   listFormFieldsOutputModel,
+  listFormResponsesInputModel,
+  listFormResponsesOutputModel,
   listMyFormsInputModel,
   listMyFormsOutputModel,
+  listSubmissionsInputModel,
+  listSubmissionsOutputModel,
+  submitFormInputModel,
+  submitFormOutputModel,
   updateFormFieldInputModel,
   updateFormFieldOutputModel,
 } from "./model";
-import { formFieldService, formService } from "../../services";
+import { formFieldService, formService, formSubmissionService } from "../../services";
 
 const TAGS = ["Form"];
 const getPath = generatePath("/form");
@@ -170,5 +180,84 @@ export const formRouter = router({
     .output(deleteFormFieldOutputModel)
     .mutation(async ({ input }) => {
       return formFieldService.deleteFormField({ id: input.id });
+    }),
+
+  // Form Submissions Procedures
+
+  submitForm: publicProcedure
+    .meta({
+      openapi: {
+        method: "POST",
+        path: getPath("/submitForm"),
+        tags: TAGS,
+      },
+    })
+    .input(submitFormInputModel)
+    .output(submitFormOutputModel)
+    .mutation(async ({ input }) => {
+      return formSubmissionService.submitForm(input);
+    }),
+
+  listSubmissions: authenticatedProcedure
+    .meta({
+      openapi: {
+        method: "POST",
+        path: getPath("/listSubmissions"),
+        tags: TAGS,
+        protect: true,
+      },
+    })
+    .input(listSubmissionsInputModel)
+    .output(listSubmissionsOutputModel)
+    .query(async ({ input }) => {
+      return formSubmissionService.listSubmissionsByFormId({ formId: input.formId });
+    }),
+
+  listFormResponses: authenticatedProcedure
+    .meta({
+      openapi: {
+        method: "POST",
+        path: getPath("/listFormResponses"),
+        tags: TAGS,
+        protect: true,
+      },
+    })
+    .input(listFormResponsesInputModel)
+    .output(listFormResponsesOutputModel)
+    .query(async ({ input, ctx }) => {
+      return formSubmissionService.listFormSubmissionsForCreator({
+        formId: input.formId,
+        userId: ctx.user.id,
+      });
+    }),
+
+  getSubmission: authenticatedProcedure
+    .meta({
+      openapi: {
+        method: "POST",
+        path: getPath("/getSubmission"),
+        tags: TAGS,
+        protect: true,
+      },
+    })
+    .input(getSubmissionInputModel)
+    .output(getSubmissionOutputModel)
+    .query(async ({ input }) => {
+      return formSubmissionService.getSubmissionById({ id: input.id });
+    }),
+
+  deleteSubmission: authenticatedProcedure
+    .meta({
+      openapi: {
+        method: "POST",
+        path: getPath("/deleteSubmission"),
+        tags: TAGS,
+        protect: true,
+      },
+    })
+    .input(deleteSubmissionInputModel)
+    .output(deleteSubmissionOutputModel)
+    .mutation(async ({ input }) => {
+      return formSubmissionService.deleteSubmission({ id: input.id });
     }),
 });

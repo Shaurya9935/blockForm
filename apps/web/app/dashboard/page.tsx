@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { DashStyles } from '~/components/dashboard/dash-styles'
 import { Sidebar } from '~/components/dashboard/sidebar'
 import { Header } from '~/components/dashboard/header'
@@ -15,6 +16,7 @@ import { IconPlus } from '~/components/dashboard/icons'
 import { useGetForms } from '~/hooks/api/form'
 
 export default function DashboardPage({ onBack }: { onBack?: () => void }) {
+  const router = useRouter()
   const [activeNav, setActiveNav] = useState('dashboard')
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [useMockData, setUseMockData] = useState(false)
@@ -23,6 +25,13 @@ export default function DashboardPage({ onBack }: { onBack?: () => void }) {
   const { forms, isLoading, isError, error } = useGetForms()
 
   const handleCreateForm = () => setCreateModalOpen(true)
+
+  const handleNav = (id: string) => {
+    setActiveNav(id)
+    if (id === 'forms') {
+      router.push('/dashboard/forms')
+    }
+  }
 
   const displayForms = useMockData ? FORMS : (forms || [])
   const totalFormCount = displayForms.length
@@ -35,7 +44,7 @@ export default function DashboardPage({ onBack }: { onBack?: () => void }) {
         {/* Sidebar */}
         <Sidebar
           active={activeNav}
-          onNav={setActiveNav}
+          onNav={handleNav}
           onCreateForm={handleCreateForm}
           collapsed={!sidebarOpen}
           onClose={() => setSidebarOpen(false)}
@@ -106,6 +115,7 @@ export default function DashboardPage({ onBack }: { onBack?: () => void }) {
                     {useMockData ? 'Showing Mock Forms' : 'Show Mock Forms'}
                   </button>
                   <button
+                    onClick={() => router.push('/dashboard/forms')}
                     style={{
                       background: 'none',
                       border: 'none',

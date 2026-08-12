@@ -188,3 +188,103 @@ export const useGetFormFields = (formId: string) => {
     status,
   };
 };
+
+// Form Submissions React Query Hooks
+
+export const useSubmitForm = () => {
+  const utils = trpc.useUtils();
+
+  const {
+    mutateAsync: submitFormAsync,
+    mutate: submitForm,
+    error,
+    isError,
+    isPending,
+    isSuccess,
+    status,
+  } = trpc.form.submitForm.useMutation({
+    onSuccess: async () => {
+      await utils.form.invalidate();
+    },
+  });
+
+  return {
+    submitForm,
+    submitFormAsync,
+    error,
+    isError,
+    isPending,
+    isSuccess,
+    status,
+  };
+};
+
+export const useListSubmissions = (formId: string) => {
+  const { data: submissions, error, isFetched, isFetching, isLoading, status } =
+    trpc.form.listSubmissions.useQuery({ formId }, { enabled: !!formId });
+
+  return {
+    submissions,
+    error,
+    isFetched,
+    isFetching,
+    isLoading,
+    status,
+  };
+};
+
+export const useListFormResponses = (formId: string) => {
+  const { data: responsesData, error, isFetched, isFetching, isLoading, status } =
+    trpc.form.listFormResponses.useQuery({ formId }, { enabled: !!formId });
+
+  return {
+    responsesData,
+    error,
+    isFetched,
+    isFetching,
+    isLoading,
+    status,
+  };
+};
+
+export const useGetSubmission = (id: string) => {
+  const { data: submission, error, isFetched, isFetching, isLoading, status } =
+    trpc.form.getSubmission.useQuery({ id }, { enabled: !!id });
+
+  return {
+    submission,
+    error,
+    isFetched,
+    isFetching,
+    isLoading,
+    status,
+  };
+};
+
+export const useDeleteSubmission = () => {
+  const utils = trpc.useUtils();
+
+  const {
+    mutateAsync: deleteSubmissionAsync,
+    mutate: deleteSubmission,
+    error,
+    isError,
+    isPending,
+    isSuccess,
+    status,
+  } = trpc.form.deleteSubmission.useMutation({
+    onSuccess: async () => {
+      await utils.form.invalidate();
+    },
+  });
+
+  return {
+    deleteSubmission,
+    deleteSubmissionAsync,
+    error,
+    isError,
+    isPending,
+    isSuccess,
+    status,
+  };
+};

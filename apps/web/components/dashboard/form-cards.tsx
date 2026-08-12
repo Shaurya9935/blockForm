@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { Form } from './types'
 import { ThumbCollege, ThumbEvent, ThumbStartup, ThumbGaming } from './thumbnails'
 import { IconDots } from './icons'
@@ -88,6 +89,7 @@ export interface FormCardProps {
 }
 
 export function FormCard({ form, index = 0 }: FormCardProps) {
+  const router = useRouter()
   const [menuOpen, setMenuOpen] = useState(false)
   const [hov, setHov] = useState(false)
 
@@ -98,6 +100,11 @@ export function FormCard({ form, index = 0 }: FormCardProps) {
   const responses = form.responses ?? 0
   const editedText = formatEditedTime(form.updatedAt || form.createdAt, form.edited)
 
+  const handleOpenForm = (e?: React.MouseEvent) => {
+    if (e) e.stopPropagation()
+    router.push(`/dashboard/forms?id=${form.id}`)
+  }
+
   return (
     <div
       onMouseEnter={() => setHov(true)}
@@ -105,6 +112,7 @@ export function FormCard({ form, index = 0 }: FormCardProps) {
         setHov(false)
         setMenuOpen(false)
       }}
+      onClick={handleOpenForm}
       style={{
         backgroundColor: '#161b22',
         border: `1px solid ${hov ? '#2d3741' : '#21262d'}`,
@@ -115,7 +123,7 @@ export function FormCard({ form, index = 0 }: FormCardProps) {
         transition: 'border-color 0.2s, transform 0.2s, box-shadow 0.2s',
         transform: hov ? 'translateY(-3px)' : 'none',
         boxShadow: hov ? '0 12px 32px rgba(0,0,0,0.3)' : 'none',
-        cursor: 'default',
+        cursor: 'pointer',
         position: 'relative',
       }}
     >
@@ -157,7 +165,10 @@ export function FormCard({ form, index = 0 }: FormCardProps) {
         {/* Three-dot menu */}
         <div style={{ position: 'absolute', top: 8, right: 8 }}>
           <button
-            onClick={() => setMenuOpen(!menuOpen)}
+            onClick={(e) => {
+              e.stopPropagation()
+              setMenuOpen(!menuOpen)
+            }}
             style={{
               width: 28,
               height: 28,
@@ -193,6 +204,12 @@ export function FormCard({ form, index = 0 }: FormCardProps) {
               {['Open', 'Edit', 'Responses', 'Analytics', 'Duplicate', 'Delete'].map((action) => (
                 <button
                   key={action}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    if (action === 'Open' || action === 'Edit') {
+                      handleOpenForm()
+                    }
+                  }}
                   style={{
                     width: '100%',
                     padding: '7px 14px',
@@ -257,6 +274,10 @@ export function FormCard({ form, index = 0 }: FormCardProps) {
           {['Open', 'Edit', 'Responses'].map((a, i) => (
             <button
               key={a}
+              onClick={(e) => {
+                e.stopPropagation()
+                handleOpenForm()
+              }}
               style={{
                 flex: 1,
                 padding: '5px 0',

@@ -120,3 +120,71 @@ export const deleteFormFieldOutputModel = z.object({
     id: z.string(),
     success: z.boolean(),
 })
+
+// Form Submission Procedures Input/Output Models
+
+export const formSubmissionValueObject = z.object({
+    formFieldId: z.string().describe('ID of the field'),
+    value: z.string().describe('Submitted value'),
+})
+
+export const formSubmissionObject = z.object({
+    id: z.string().uuid().describe('ID of the submission'),
+    formId: z.string().uuid().nullable().describe('ID of the form'),
+    values: z.array(formSubmissionValueObject).nullable(),
+    createdAt: z.date().nullable(),
+    updatedAt: z.date().nullable(),
+})
+
+export const submitFormInputModel = z.object({
+    formId: z.string().uuid('Invalid form ID'),
+    values: z.array(formSubmissionValueObject).min(1, 'At least one value is required'),
+})
+
+export const submitFormOutputModel = z.object({
+    id: z.string().describe('UUID of the submission'),
+    createdAt: z.date().nullable().optional(),
+})
+
+export const listSubmissionsInputModel = z.object({
+    formId: z.string().uuid('Invalid form ID'),
+})
+
+export const listSubmissionsOutputModel = z.array(formSubmissionObject)
+
+export const listFormResponsesInputModel = z.object({
+    formId: z.string().uuid('Invalid form ID'),
+})
+
+export const listFormResponsesOutputModel = z.object({
+    form: z.object({
+        id: z.string(),
+        title: z.string(),
+        description: z.string().nullable().optional(),
+    }),
+    fields: z.array(
+        z.object({
+            id: z.string(),
+            label: z.string(),
+            labelKey: z.string(),
+            type: fieldTypeEnum,
+            index: z.string(),
+        })
+    ),
+    submissions: z.array(formSubmissionObject),
+})
+
+export const getSubmissionInputModel = z.object({
+    id: z.string().uuid('Invalid submission ID'),
+})
+
+export const getSubmissionOutputModel = formSubmissionObject
+
+export const deleteSubmissionInputModel = z.object({
+    id: z.string().uuid('Invalid submission ID'),
+})
+
+export const deleteSubmissionOutputModel = z.object({
+    id: z.string(),
+    success: z.boolean(),
+})
