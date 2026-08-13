@@ -289,6 +289,26 @@ function FormsContent() {
                     </div>
 
                     <button
+                      onClick={() => router.push(`/dashboard/forms/workflow/${selectedFormId}`)}
+                      style={{
+                        backgroundColor: '#161b22',
+                        color: '#6abf3c',
+                        border: '1px solid rgba(106,191,60,0.35)',
+                        borderRadius: 8,
+                        padding: '8px 14px',
+                        fontSize: 13,
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 6,
+                        boxShadow: '0 2px 10px rgba(106,191,60,0.15)',
+                      }}
+                    >
+                      ⚡ Visual Workflow Builder
+                    </button>
+
+                    <button
                       onClick={() => router.push(`/dashboard/forms/${selectedFormId}`)}
                       style={{
                         backgroundColor: '#161b22',
