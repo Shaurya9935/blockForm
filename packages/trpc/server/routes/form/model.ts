@@ -95,6 +95,9 @@ export const bulkCreateFormFieldsInputModel = z.object({
             isRequired: z.boolean().optional().default(false),
             index: z.string(),
             type: fieldTypeEnum,
+            config: z.any().optional().nullable(),
+            workflowX: z.number().optional().nullable(),
+            workflowY: z.number().optional().nullable(),
         })
     ),
 })

@@ -54,25 +54,33 @@ class FormFieldService {
   public async bulkCreateFormFields(payload: BulkCreateFormFieldsInputType) {
     const { formId, fields } = await bulkCreateFormFieldsInput.parseAsync(payload);
 
-    if (fields.length === 0) return [];
+    return await db.transaction(async (tx) => {
+      // Delete existing form fields for this form first so saving replaces the workflow fields cleanly
+      await tx.delete(formFieldsTable).where(eq(formFieldsTable.formId, formId));
 
-    const valuesToInsert = fields.map((field) => ({
-      formId,
-      label: field.label,
-      labelKey: field.labelKey,
-      description: field.description ?? "",
-      placeholder: field.placeholder ?? null,
-      isRequired: field.isRequired ?? false,
-      index: field.index,
-      type: field.type,
-    }));
+      if (fields.length === 0) return [];
 
-    const insertedFields = await db
-      .insert(formFieldsTable)
-      .values(valuesToInsert)
-      .returning();
+      const valuesToInsert = fields.map((field) => ({
+        formId,
+        label: field.label,
+        labelKey: field.labelKey,
+        description: field.description ?? "",
+        placeholder: field.placeholder ?? null,
+        isRequired: field.isRequired ?? false,
+        index: field.index,
+        type: field.type,
+        config: field.config ?? null,
+        workflowX: field.workflowX ?? null,
+        workflowY: field.workflowY ?? null,
+      }));
 
-    return insertedFields;
+      const insertedFields = await tx
+        .insert(formFieldsTable)
+        .values(valuesToInsert)
+        .returning();
+
+      return insertedFields;
+    });
   }
 
   public async listFormFieldsByFormId(payload: ListFormFieldsByFormIdInputType) {

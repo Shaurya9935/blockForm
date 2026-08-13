@@ -136,7 +136,7 @@ const StartNodeComponent: React.FC<NodeProps> = ({ data }) => {
       <p style={{ margin: 0, fontSize: 12, color: '#8b9ab0', lineHeight: 1.4 }}>{desc}</p>
       <Handle
         type="source"
-        position={Position.Bottom}
+        position={Position.Right}
         id="start-out"
         style={{
           width: 12,
@@ -179,7 +179,7 @@ const FieldNodeComponent: React.FC<NodeProps> = ({ id, data, selected }) => {
     >
       <Handle
         type="target"
-        position={Position.Top}
+        position={Position.Left}
         id="field-in"
         style={{
           width: 10,
@@ -226,17 +226,17 @@ const FieldNodeComponent: React.FC<NodeProps> = ({ id, data, selected }) => {
           )}
           <button
             onClick={(e) => { e.stopPropagation(); onMoveNodeUp?.(id) }}
-            title="Move Up"
+            title="Move Left"
             style={{ background: 'none', border: 'none', color: '#4e5a6a', cursor: 'pointer', fontSize: 12, padding: '2px 4px' }}
           >
-            ▲
+            ◄
           </button>
           <button
             onClick={(e) => { e.stopPropagation(); onMoveNodeDown?.(id) }}
-            title="Move Down"
+            title="Move Right"
             style={{ background: 'none', border: 'none', color: '#4e5a6a', cursor: 'pointer', fontSize: 12, padding: '2px 4px' }}
           >
-            ▼
+            ►
           </button>
           <button
             onClick={(e) => { e.stopPropagation(); onDeleteNode?.(id) }}
@@ -320,7 +320,7 @@ const FieldNodeComponent: React.FC<NodeProps> = ({ id, data, selected }) => {
 
       <Handle
         type="source"
-        position={Position.Bottom}
+        position={Position.Right}
         id="field-out"
         style={{
           width: 10,
@@ -352,7 +352,7 @@ const EndNodeComponent: React.FC<NodeProps> = ({ data }) => {
     >
       <Handle
         type="target"
-        position={Position.Top}
+        position={Position.Left}
         id="end-in"
         style={{
           width: 12,
@@ -577,7 +577,7 @@ function WorkflowCanvas({ formId }: WorkflowCanvasProps) {
   // Auto Layout Handler
   const handleAutoLayout = useCallback(() => {
     setNodes((nds) => {
-      let currentY = 100
+      let currentX = 80
       const startN = nds.find((n) => n.id === 'start-node')
       const fieldNs = nds.filter((n) => n.type === 'fieldNode')
       const endN = nds.find((n) => n.id === 'end-node')
@@ -585,23 +585,23 @@ function WorkflowCanvas({ formId }: WorkflowCanvasProps) {
       const updatedNodes: Node[] = []
 
       if (startN) {
-        updatedNodes.push({ ...startN, position: { x: 250, y: currentY } })
-        currentY += 160
+        updatedNodes.push({ ...startN, position: { x: currentX, y: 180 } })
+        currentX += 340
       }
 
       fieldNs.forEach((fn) => {
-        updatedNodes.push({ ...fn, position: { x: 230, y: currentY } })
-        currentY += 200
+        updatedNodes.push({ ...fn, position: { x: currentX, y: 180 } })
+        currentX += 380
       })
 
       if (endN) {
-        updatedNodes.push({ ...endN, position: { x: 250, y: currentY } })
+        updatedNodes.push({ ...endN, position: { x: currentX, y: 180 } })
       }
 
       setEdges(buildSequentialEdges(updatedNodes))
       return updatedNodes
     })
-    toast.success('Workflow auto-aligned top to bottom')
+    toast.success('Workflow auto-aligned left to right')
   }, [setNodes, setEdges, buildSequentialEdges])
 
   // Populate nodes from API fields or default template
@@ -612,22 +612,26 @@ function WorkflowCanvas({ formId }: WorkflowCanvasProps) {
       {
         id: 'start-node',
         type: 'startNode',
-        position: { x: 250, y: 80 },
+        position: { x: 80, y: 180 },
         data: { title: form?.title || 'Form Entry', description: 'Respondent starts here' },
         deletable: false,
       },
     ]
 
-    let currentY = 240
+    let currentX = 420
     let stepCount = 1
 
     if (fields && fields.length > 0) {
       fields.forEach((f) => {
         const fieldNodeId = `node-${f.id}`
+        const config = (f.config as any) || {}
+        const posX = f.workflowX ?? currentX
+        const posY = f.workflowY ?? 180
+
         initialNodes.push({
           id: fieldNodeId,
           type: 'fieldNode',
-          position: { x: 230, y: currentY },
+          position: { x: posX, y: posY },
           data: {
             fieldId: f.id,
             label: f.label,
@@ -637,15 +641,17 @@ function WorkflowCanvas({ formId }: WorkflowCanvasProps) {
             placeholder: f.placeholder || '',
             isRequired: f.isRequired,
             index: stepCount++,
-            options: [{ id: uid(), value: 'Option 1' }, { id: uid(), value: 'Option 2' }],
-            maxRating: 5,
+            options: config.options || [{ id: uid(), value: 'Option 1' }, { id: uid(), value: 'Option 2' }],
+            maxRating: config.maxRating || 5,
+            minValue: config.minValue,
+            maxValue: config.maxValue,
             onSelectNode: handleSelectNode,
             onDeleteNode: handleDeleteNode,
             onMoveNodeUp: handleMoveNodeUp,
             onMoveNodeDown: handleMoveNodeDown,
           },
         })
-        currentY += 200
+        currentX = Math.max(currentX + 380, posX + 380)
       })
     } else {
       // Starter demo node
@@ -653,7 +659,7 @@ function WorkflowCanvas({ formId }: WorkflowCanvasProps) {
       initialNodes.push({
         id: demoFieldId,
         type: 'fieldNode',
-        position: { x: 230, y: currentY },
+        position: { x: currentX, y: 180 },
         data: {
           label: 'Full Name',
           labelKey: 'full_name',
@@ -670,13 +676,13 @@ function WorkflowCanvas({ formId }: WorkflowCanvasProps) {
           onMoveNodeDown: handleMoveNodeDown,
         },
       })
-      currentY += 200
+      currentX += 380
     }
 
     initialNodes.push({
       id: 'end-node',
       type: 'endNode',
-      position: { x: 250, y: currentY },
+      position: { x: currentX, y: 180 },
       data: { title: 'Form Completed' },
       deletable: false,
     })
@@ -724,8 +730,8 @@ function WorkflowCanvas({ formId }: WorkflowCanvasProps) {
 
         let dropPos = position
         if (!dropPos) {
-          const lastFieldPos = fieldNodes.length > 0 ? fieldNodes[fieldNodes.length - 1]!.position : { x: 230, y: 160 }
-          dropPos = { x: lastFieldPos.x, y: lastFieldPos.y + 200 }
+          const lastFieldPos = fieldNodes.length > 0 ? fieldNodes[fieldNodes.length - 1]!.position : { x: 80, y: 180 }
+          dropPos = { x: lastFieldPos.x + 380, y: lastFieldPos.y }
         }
 
         const newNode: Node = {
@@ -751,8 +757,8 @@ function WorkflowCanvas({ formId }: WorkflowCanvasProps) {
           },
         }
 
-        // Shift end node down if needed
-        const updated = nds.map((n) => (n.id === 'end-node' ? { ...n, position: { x: n.position.x, y: n.position.y + 200 } } : n))
+        // Shift end node right if needed
+        const updated = nds.map((n) => (n.id === 'end-node' ? { ...n, position: { x: n.position.x + 380, y: n.position.y } } : n))
         const endNodeIdx = updated.findIndex((n) => n.id === 'end-node')
 
         if (endNodeIdx !== -1) {
@@ -826,16 +832,35 @@ function WorkflowCanvas({ formId }: WorkflowCanvasProps) {
     }
 
     try {
+      const validTypes = ['TEXT', 'NUMBER', 'EMAIL', 'YES_NO', 'PASSWORD', 'SELECT', 'CHECKBOX', 'RATING', 'DATE']
+
       const payloadFields = fieldNodes.map((n, idx) => {
         const d = n.data as unknown as FormBlockData
+        const rawType = String(d.type || 'TEXT').toUpperCase()
+        const fieldType = validTypes.includes(rawType) ? rawType : 'TEXT'
+        const label = (d.label || `Question ${idx + 1}`).trim().slice(0, 100)
+        const labelKey = (d.labelKey || generateLabelKey(label, idx)).trim().slice(0, 100)
+        const description = (d.description || '').trim().slice(0, 300)
+        const placeholder = d.placeholder ? String(d.placeholder).trim() : null
+
+        const config = {
+          options: d.options || [],
+          maxRating: d.maxRating,
+          minValue: d.minValue,
+          maxValue: d.maxValue,
+        }
+
         return {
-          label: d.label || `Question ${idx + 1}`,
-          labelKey: d.labelKey || generateLabelKey(d.label, idx),
-          type: (d.type as any) || 'TEXT',
-          description: d.description || undefined,
-          placeholder: d.placeholder || null,
+          label: label || `Question ${idx + 1}`,
+          labelKey: labelKey || `field_${idx + 1}`,
+          type: fieldType as any,
+          description,
+          placeholder,
           isRequired: Boolean(d.isRequired),
-          index: String(idx + 1).padStart(4, '0'),
+          index: String(idx + 1),
+          config,
+          workflowX: Math.round(n.position.x),
+          workflowY: Math.round(n.position.y),
         }
       })
 
@@ -846,6 +871,7 @@ function WorkflowCanvas({ formId }: WorkflowCanvasProps) {
 
       toast.success('Form workflow saved successfully!')
     } catch (err: any) {
+      console.error('Save workflow error:', err)
       toast.error(err?.message || 'Failed to save workflow')
     }
   }
@@ -1298,7 +1324,7 @@ function WorkflowCanvas({ formId }: WorkflowCanvasProps) {
                         cursor: 'pointer',
                       }}
                     >
-                      ▲ Move Up
+                      ◄ Move Left
                     </button>
                     <button
                       onClick={() => handleMoveNodeDown(selectedNodeId!)}
@@ -1314,7 +1340,7 @@ function WorkflowCanvas({ formId }: WorkflowCanvasProps) {
                         cursor: 'pointer',
                       }}
                     >
-                      ▼ Move Down
+                      ► Move Right
                     </button>
                   </div>
                 </div>
