@@ -6,11 +6,8 @@ import { DashStyles } from '~/components/dashboard/dash-styles'
 import { Sidebar } from '~/components/dashboard/sidebar'
 import { Header } from '~/components/dashboard/header'
 import { WelcomeCard } from '~/components/dashboard/welcome-card'
-import { StatCard, STATS } from '~/components/dashboard/stat-cards'
-import { FormCard, EmptyForms, FORMS } from '~/components/dashboard/form-cards'
+import { FormCard, EmptyForms } from '~/components/dashboard/form-cards'
 import { BlueprintCard, BLUEPRINTS } from '~/components/dashboard/blueprint-cards'
-import { ActivityFeed } from '~/components/dashboard/activity-feed'
-import { AnalyticsCard } from '~/components/dashboard/analytics-card'
 import { BlockFormBuilder } from '~/components/dashboard/block-form-builder'
 import { IconPlus } from '~/components/dashboard/icons'
 import { useGetForms } from '~/hooks/api/form'
@@ -19,12 +16,9 @@ export default function DashboardPage({ onBack }: { onBack?: () => void }) {
   const router = useRouter()
   const [activeNav, setActiveNav] = useState('dashboard')
   const [sidebarOpen, setSidebarOpen] = useState(true)
-  const [useMockData, setUseMockData] = useState(false)
-  const [builderOpen, setBuilderOpen] = useState(false)
-
   const { forms, isLoading, isError, error } = useGetForms()
 
-  const handleCreateForm = () => setBuilderOpen(true)
+  const handleCreateForm = () => router.push('/dashboard/forms/builder')
 
   const handleNav = (id: string) => {
     setActiveNav(id)
@@ -33,7 +27,7 @@ export default function DashboardPage({ onBack }: { onBack?: () => void }) {
     }
   }
 
-  const displayForms = useMockData ? FORMS : (forms || [])
+  const displayForms =   (forms || [])
   const totalFormCount = displayForms.length
 
   return (
@@ -66,16 +60,6 @@ export default function DashboardPage({ onBack }: { onBack?: () => void }) {
               <WelcomeCard onCreateForm={handleCreateForm} />
             </section>
 
-            {/* Stats row */}
-            <section style={{ marginBottom: 32 }}>
-              <div
-                className="stats-grid"
-                style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14 }}
-              >
-                {STATS.map((s) => <StatCard key={s.label} stat={s} />)}
-              </div>
-            </section>
-
             {/* My Forms */}
             <section style={{ marginBottom: 32 }}>
               <div
@@ -97,23 +81,7 @@ export default function DashboardPage({ onBack }: { onBack?: () => void }) {
                   </div>
                 </div>
                 <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                  {/* Toggle demo mock data */}
-                  <button
-                    onClick={() => setUseMockData(!useMockData)}
-                    style={{
-                      background: 'none',
-                      border: '1px solid #21262d',
-                      borderRadius: 6,
-                      color: useMockData ? '#6abf3c' : '#4e5a6a',
-                      fontSize: 11,
-                      fontFamily: "'Outfit', sans-serif",
-                      cursor: 'pointer',
-                      padding: '5px 10px',
-                    }}
-                    title="Toggle demo forms"
-                  >
-                    {useMockData ? 'Showing Mock Forms' : 'Show Mock Forms'}
-                  </button>
+
                   <button
                     onClick={() => router.push('/dashboard/forms')}
                     style={{
@@ -227,17 +195,6 @@ export default function DashboardPage({ onBack }: { onBack?: () => void }) {
               </div>
             </section>
 
-            {/* Activity + Analytics */}
-            <section>
-              <div
-                className="activity-layout"
-                style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}
-              >
-                <ActivityFeed />
-                <AnalyticsCard />
-              </div>
-            </section>
-
             {/* Back link */}
             {onBack && (
               <div style={{ marginTop: 32, paddingTop: 24, borderTop: '1px solid #21262d' }}>
@@ -266,11 +223,6 @@ export default function DashboardPage({ onBack }: { onBack?: () => void }) {
           </main>
         </div>
       </div>
-
-      {/* BlockForm Builder — full-screen overlay */}
-      {builderOpen && (
-        <BlockFormBuilder onClose={() => setBuilderOpen(false)} />
-      )}
     </>
   )
 }

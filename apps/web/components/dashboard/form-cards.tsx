@@ -6,44 +6,6 @@ import { Form } from './types'
 import { ThumbCollege, ThumbEvent, ThumbStartup, ThumbGaming } from './thumbnails'
 import { IconDots } from './icons'
 
-export const FORMS: Form[] = [
-  {
-    id: '1',
-    name: 'College Fest Registration',
-    desc: 'Registration form for the annual college festival.',
-    status: 'published',
-    responses: 438,
-    edited: '2 hours ago',
-    theme: 'college',
-  },
-  {
-    id: '2',
-    name: 'Event Feedback Survey',
-    desc: 'Post-event satisfaction form for attendees.',
-    status: 'published',
-    responses: 284,
-    edited: 'Yesterday',
-    theme: 'event',
-  },
-  {
-    id: '3',
-    name: 'Startup Survey',
-    desc: 'Collect feedback from potential early users.',
-    status: 'published',
-    responses: 127,
-    edited: '3 days ago',
-    theme: 'startup',
-  },
-  {
-    id: '4',
-    name: 'Gaming Community Survey',
-    desc: 'Find out what games your community wants to play.',
-    status: 'draft',
-    responses: 0,
-    edited: '5 days ago',
-    theme: 'gaming',
-  },
-]
 
 const THEMES: ('college' | 'event' | 'startup' | 'gaming')[] = ['college', 'event', 'startup', 'gaming']
 

@@ -209,14 +209,14 @@ function FormsContent() {
         <Sidebar
           active={activeNav}
           onNav={handleNav}
-          onCreateForm={() => setCreateFormModalOpen(true)}
+          onCreateForm={() => router.push('/dashboard/forms/builder')}
           collapsed={!sidebarOpen}
           onClose={() => setSidebarOpen(false)}
         />
 
         {/* Main Content Area */}
         <div className="dash-layout" style={{ marginLeft: 240, minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-          <Header onMenuToggle={() => setSidebarOpen(!sidebarOpen)} onCreateForm={() => setCreateFormModalOpen(true)} />
+          <Header onMenuToggle={() => setSidebarOpen(!sidebarOpen)} onCreateForm={() => router.push('/dashboard/forms/builder')} />
 
           <main style={{ flex: 1, padding: '28px 28px 48px' }}>
             {selectedFormId ? (
@@ -653,7 +653,7 @@ function FormsContent() {
                   </div>
 
                   <button
-                    onClick={() => setCreateFormModalOpen(true)}
+                    onClick={() => router.push('/dashboard/forms/builder')}
                     style={{
                       display: 'flex',
                       alignItems: 'center',
@@ -718,7 +718,7 @@ function FormsContent() {
                       {searchQuery ? 'Try adjusting your search query.' : 'Get started by creating your first form.'}
                     </p>
                     <button
-                      onClick={() => setCreateFormModalOpen(true)}
+                      onClick={() => router.push('/dashboard/forms/builder')}
                       style={{
                         backgroundColor: '#6abf3c',
                         color: '#0d1117',

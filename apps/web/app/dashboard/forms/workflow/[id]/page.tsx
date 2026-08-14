@@ -1,5 +1,5 @@
 import React, { use } from 'react'
-import FormWorkflowBuilder from '~/components/workflow/form-builder'
+import UnifiedFormBuilder from '~/components/builder/unified-form-builder'
 
 interface PageProps {
   params: Promise<{ id: string }>
@@ -8,5 +8,5 @@ interface PageProps {
 export default function WorkflowPage({ params }: PageProps) {
   const { id } = use(params)
 
-  return <FormWorkflowBuilder formId={id} />
+  return <UnifiedFormBuilder formId={id} />
 }
