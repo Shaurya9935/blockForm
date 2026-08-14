@@ -29,6 +29,9 @@ export const createFormFieldInput = z.object({
   isRequired: z.boolean().optional().default(false),
   index: z.string().describe("Fractional index for ordering"),
   type: fieldTypeEnum,
+  config: z.any().optional().nullable(),
+  workflowX: z.number().optional().nullable(),
+  workflowY: z.number().optional().nullable(),
 });
 
 export type CreateFormFieldInputType = z.infer<typeof createFormFieldInput>;
@@ -74,6 +77,9 @@ export const updateFormFieldInput = z.object({
   isRequired: z.boolean().optional(),
   index: z.string().optional(),
   type: fieldTypeEnum.optional(),
+  config: z.any().optional().nullable(),
+  workflowX: z.number().optional().nullable(),
+  workflowY: z.number().optional().nullable(),
 });
 
 export type UpdateFormFieldInputType = z.infer<typeof updateFormFieldInput>;

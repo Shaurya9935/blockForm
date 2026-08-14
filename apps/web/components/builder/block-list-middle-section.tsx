@@ -3,6 +3,7 @@
 import React, { useState } from 'react'
 import { BLOCK_CONFIGS, type BlockType } from './builder-left-sidebar'
 import type { FormBlockData } from './builder-right-sidebar'
+import { normalizeOptions } from '~/lib/utils'
 
 interface BlockListMiddleSectionProps {
   blocks: FormBlockData[]
@@ -385,16 +386,19 @@ export function BlockListMiddleSection({
                     </div>
                   )}
 
-                  {(block.type === 'SELECT' || block.type === 'CHECKBOX') && (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                      {(block.options || []).map((opt, i) => (
-                        <div key={opt.id || i} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: '#8b9ab0' }}>
-                          <div style={{ width: 14, height: 14, border: '1px solid #2d3741', borderRadius: block.type === 'CHECKBOX' ? 3 : 7 }} />
-                          <span>{opt.value || `Option ${i + 1}`}</span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                  {(block.type === 'SELECT' || block.type === 'CHECKBOX') && (() => {
+                    const options = normalizeOptions(block.options)
+                    return (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                        {options.map((opt, i) => (
+                          <div key={opt.id || i} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: '#8b9ab0' }}>
+                            <div style={{ width: 14, height: 14, border: '1px solid #2d3741', borderRadius: block.type === 'CHECKBOX' ? 3 : 7 }} />
+                            <span>{opt.value || `Option ${i + 1}`}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )
+                  })()}
 
                   {block.type === 'RATING' && (
                     <div style={{ display: 'flex', gap: 6, color: '#fbbf24', fontSize: 18 }}>

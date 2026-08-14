@@ -20,6 +20,7 @@ import {
   useCreateForm,
   useBulkCreateFormFields,
 } from '~/hooks/api/form'
+import { normalizeOptions } from '~/lib/utils'
 
 import {
   BuilderLeftSidebar,
@@ -330,7 +331,11 @@ function UnifiedCanvas({ formId }: UnifiedFormBuilderProps) {
             placeholder: f.placeholder || '',
             isRequired: f.isRequired,
             index: stepCount++,
-            options: config.options || [{ id: uid(), value: 'Option 1' }, { id: uid(), value: 'Option 2' }],
+            options: normalizeOptions(config.options).length > 0
+              ? normalizeOptions(config.options)
+              : ((f.type as BlockType) === 'SELECT' || (f.type as BlockType) === 'CHECKBOX'
+                  ? [{ id: uid(), value: 'Option 1' }, { id: uid(), value: 'Option 2' }]
+                  : []),
             maxRating: config.maxRating || 5,
             minValue: config.minValue,
             maxValue: config.maxValue,
@@ -576,7 +581,7 @@ function UnifiedCanvas({ formId }: UnifiedFormBuilderProps) {
         const placeholder = d.placeholder ? String(d.placeholder).trim() : null
 
         const config = {
-          options: d.options || [],
+          options: normalizeOptions(d.options),
           maxRating: d.maxRating,
           minValue: d.minValue,
           maxValue: d.maxValue,

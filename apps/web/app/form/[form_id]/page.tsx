@@ -4,6 +4,245 @@ import React, { useState } from 'react'
 import { useParams } from 'next/navigation'
 import { useGetForm, useSubmitForm } from '~/hooks/api/form'
 import { toast } from 'sonner'
+import { getOptionValues } from '~/lib/utils'
+
+function RenderFieldInput({
+  field,
+  value,
+  onChange,
+  disabled,
+}: {
+  field: any
+  value: string
+  onChange: (val: string) => void
+  disabled?: boolean
+}) {
+  const config = (field.config as any) || {}
+  const options = getOptionValues(config.options)
+
+  if (field.type === 'SELECT') {
+    return (
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        required={field.isRequired}
+        disabled={disabled}
+        style={{
+          width: '100%',
+          padding: '12px 14px',
+          backgroundColor: '#0d1117',
+          border: '1.5px solid #21262d',
+          borderRadius: 8,
+          color: '#eceae4',
+          fontSize: 14,
+          fontFamily: "'Outfit', sans-serif",
+          outline: 'none',
+          boxSizing: 'border-box',
+        }}
+      >
+        <option value="">-- Select an option --</option>
+        {options.map((optVal: string, i: number) => (
+          <option key={i} value={optVal}>
+            {optVal}
+          </option>
+        ))}
+      </select>
+    )
+  }
+
+  if (field.type === 'CHECKBOX') {
+    const selectedValues = value ? value.split(',').map((s) => s.trim()) : []
+
+    const handleCheckboxToggle = (optVal: string) => {
+      let nextValues: string[]
+      if (selectedValues.includes(optVal)) {
+        nextValues = selectedValues.filter((v) => v !== optVal)
+      } else {
+        nextValues = [...selectedValues, optVal]
+      }
+      onChange(nextValues.join(', '))
+    }
+
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        {options.map((optVal: string, i: number) => {
+          const isChecked = selectedValues.includes(optVal)
+          return (
+            <label
+              key={i}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 10,
+                padding: '10px 14px',
+                backgroundColor: '#0d1117',
+                border: `1.5px solid ${isChecked ? '#6abf3c' : '#21262d'}`,
+                borderRadius: 8,
+                color: '#eceae4',
+                fontSize: 14,
+                cursor: 'pointer',
+                transition: 'all 0.15s',
+              }}
+            >
+              <input
+                type="checkbox"
+                checked={isChecked}
+                onChange={() => handleCheckboxToggle(optVal)}
+                disabled={disabled}
+                style={{ width: 18, height: 18, accentColor: '#6abf3c', cursor: 'pointer' }}
+              />
+              <span>{optVal}</span>
+            </label>
+          )
+        })}
+      </div>
+    )
+  }
+
+  if (field.type === 'RATING') {
+    const maxRating = config.maxRating || 5
+    const currentRating = Number(value || 0)
+
+    return (
+      <div style={{ display: 'flex', gap: 8 }}>
+        {Array.from({ length: maxRating }).map((_, i) => {
+          const starVal = i + 1
+          const isActive = starVal <= currentRating
+          return (
+            <button
+              key={starVal}
+              type="button"
+              disabled={disabled}
+              onClick={() => onChange(String(starVal))}
+              style={{
+                background: 'none',
+                border: 'none',
+                fontSize: 28,
+                color: isActive ? '#fbbf24' : '#4e5a6a',
+                cursor: 'pointer',
+                padding: '0 4px',
+                transition: 'transform 0.15s, color 0.15s',
+              }}
+            >
+              ★
+            </button>
+          )
+        })}
+      </div>
+    )
+  }
+
+  if (field.type === 'TEXTAREA') {
+    return (
+      <textarea
+        rows={4}
+        placeholder={field.placeholder || ''}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        required={field.isRequired}
+        disabled={disabled}
+        style={{
+          width: '100%',
+          padding: '12px 14px',
+          backgroundColor: '#0d1117',
+          border: '1.5px solid #21262d',
+          borderRadius: 8,
+          color: '#eceae4',
+          fontSize: 14,
+          fontFamily: "'Outfit', sans-serif",
+          outline: 'none',
+          boxSizing: 'border-box',
+          resize: 'vertical',
+        }}
+      />
+    )
+  }
+
+  if (field.type === 'DATE') {
+    return (
+      <input
+        type="date"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        required={field.isRequired}
+        disabled={disabled}
+        style={{
+          width: '100%',
+          padding: '12px 14px',
+          backgroundColor: '#0d1117',
+          border: '1.5px solid #21262d',
+          borderRadius: 8,
+          color: '#eceae4',
+          fontSize: 14,
+          fontFamily: "'Outfit', sans-serif",
+          outline: 'none',
+          boxSizing: 'border-box',
+        }}
+      />
+    )
+  }
+
+  if (field.type === 'YES_NO') {
+    return (
+      <div style={{ display: 'flex', gap: 12 }}>
+        {['Yes', 'No'].map((opt) => (
+          <label
+            key={opt}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+              padding: '10px 18px',
+              backgroundColor: '#0d1117',
+              border: `1.5px solid ${value === opt ? '#6abf3c' : '#21262d'}`,
+              borderRadius: 8,
+              color: '#eceae4',
+              fontSize: 14,
+              cursor: 'pointer',
+              transition: 'all 0.15s',
+            }}
+          >
+            <input
+              type="radio"
+              name={field.id}
+              value={opt}
+              checked={value === opt}
+              onChange={(e) => onChange(e.target.value)}
+              required={field.isRequired}
+              disabled={disabled}
+            />
+            {opt}
+          </label>
+        ))}
+      </div>
+    )
+  }
+
+  return (
+    <input
+      type={field.type === 'NUMBER' ? 'number' : field.type === 'EMAIL' ? 'email' : field.type === 'PASSWORD' ? 'password' : 'text'}
+      min={config.minValue}
+      max={config.maxValue}
+      placeholder={field.placeholder || ''}
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      required={field.isRequired}
+      disabled={disabled}
+      style={{
+        width: '100%',
+        padding: '12px 14px',
+        backgroundColor: '#0d1117',
+        border: '1.5px solid #21262d',
+        borderRadius: 8,
+        color: '#eceae4',
+        fontSize: 14,
+        fontFamily: "'Outfit', sans-serif",
+        outline: 'none',
+        boxSizing: 'border-box',
+      }}
+    />
+  )
+}
 
 export default function PublicFormSubmissionPage() {
   const params = useParams()
@@ -124,59 +363,12 @@ export default function PublicFormSubmissionPage() {
                 <div style={{ fontSize: 12, color: '#4e5a6a', marginBottom: 8 }}>{field.description}</div>
               )}
 
-              {field.type === 'YES_NO' ? (
-                <div style={{ display: 'flex', gap: 12 }}>
-                  {['Yes', 'No'].map((opt) => (
-                    <label
-                      key={opt}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 8,
-                        padding: '10px 18px',
-                        backgroundColor: '#0d1117',
-                        border: `1.5px solid ${formData[field.id] === opt ? '#6abf3c' : '#21262d'}`,
-                        borderRadius: 8,
-                        color: '#eceae4',
-                        fontSize: 14,
-                        cursor: 'pointer',
-                        transition: 'all 0.15s',
-                      }}
-                    >
-                      <input
-                        type="radio"
-                        name={field.id}
-                        value={opt}
-                        checked={formData[field.id] === opt}
-                        onChange={(e) => handleInputChange(field.id, e.target.value)}
-                        required={field.isRequired}
-                      />
-                      {opt}
-                    </label>
-                  ))}
-                </div>
-              ) : (
-                <input
-                  type={field.type === 'NUMBER' ? 'number' : field.type === 'EMAIL' ? 'email' : field.type === 'PASSWORD' ? 'password' : 'text'}
-                  placeholder={field.placeholder || ''}
-                  value={formData[field.id] || ''}
-                  onChange={(e) => handleInputChange(field.id, e.target.value)}
-                  required={field.isRequired}
-                  disabled={isPending}
-                  style={{
-                    width: '100%',
-                    padding: '12px 14px',
-                    backgroundColor: '#0d1117',
-                    border: '1.5px solid #21262d',
-                    borderRadius: 8,
-                    color: '#eceae4',
-                    fontSize: 14,
-                    fontFamily: "'Outfit', sans-serif",
-                    outline: 'none',
-                    boxSizing: 'border-box',
-                  }}
-                />
-              )}
+              <RenderFieldInput
+                field={field}
+                value={formData[field.id] || ''}
+                onChange={(val) => handleInputChange(field.id, val)}
+                disabled={isPending}
+              />
             </div>
           ))}
 

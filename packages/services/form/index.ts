@@ -60,6 +60,9 @@ class FormService {
         fieldPlaceholder: formFieldsTable.placeholder,
         fieldIsRequired: formFieldsTable.isRequired,
         fieldIndex: formFieldsTable.index,
+        fieldConfig: formFieldsTable.config,
+        fieldWorkflowX: formFieldsTable.workflowX,
+        fieldWorkflowY: formFieldsTable.workflowY,
       })
       .from(formsTable)
       .leftJoin(formFieldsTable, eq(formsTable.id, formFieldsTable.formId))
@@ -83,6 +86,9 @@ class FormService {
         placeholder: row.fieldPlaceholder ?? null,
         isRequired: row.fieldIsRequired!,
         index: row.fieldIndex!,
+        config: row.fieldConfig ?? null,
+        workflowX: row.fieldWorkflowX ?? null,
+        workflowY: row.fieldWorkflowY ?? null,
       }))
 
     return {

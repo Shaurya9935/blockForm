@@ -2,6 +2,7 @@
 
 import React from 'react'
 import type { BlockType, SelectOption } from './builder-left-sidebar'
+import { normalizeOptions } from '~/lib/utils'
 
 export interface FormBlockData {
   fieldId?: string
@@ -257,87 +258,90 @@ export function BuilderRightSidebar({
           </div>
 
           {/* Options Manager for SELECT / CHECKBOX */}
-          {(selectedBlockData.type === 'SELECT' || selectedBlockData.type === 'CHECKBOX') && (
-            <div style={{ marginBottom: 20 }}>
-              <label
-                style={{
-                  display: 'block',
-                  fontSize: 11,
-                  fontWeight: 700,
-                  color: '#8b9ab0',
-                  marginBottom: 8,
-                  textTransform: 'uppercase',
-                }}
-              >
-                Options ({(selectedBlockData.options || []).length})
-              </label>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 8 }}>
-                {(selectedBlockData.options || []).map((opt, i) => (
-                  <div key={opt.id || i} style={{ display: 'flex', gap: 6 }}>
-                    <input
-                      type="text"
-                      value={opt.value}
-                      onChange={(e) => {
-                        const newOpts = (selectedBlockData.options || []).map((o, idx) =>
-                          idx === i ? { ...o, value: e.target.value } : o
-                        )
-                        onUpdateSelectedBlock({ options: newOpts })
-                      }}
-                      style={{
-                        flex: 1,
-                        padding: '6px 10px',
-                        backgroundColor: '#0d1117',
-                        border: '1px solid #21262d',
-                        borderRadius: 6,
-                        fontSize: 12,
-                        color: '#eceae4',
-                        outline: 'none',
-                        fontFamily: "'Outfit', sans-serif",
-                      }}
-                      placeholder={`Option ${i + 1}`}
-                    />
-                    <button
-                      onClick={() => {
-                        const newOpts = (selectedBlockData.options || []).filter((_, idx) => idx !== i)
-                        onUpdateSelectedBlock({ options: newOpts })
-                      }}
-                      style={{
-                        backgroundColor: 'rgba(239,68,68,0.1)',
-                        color: '#f87171',
-                        border: '1px solid rgba(239,68,68,0.2)',
-                        borderRadius: 6,
-                        padding: '0 8px',
-                        cursor: 'pointer',
-                        fontSize: 12,
-                      }}
-                    >
-                      ✕
-                    </button>
-                  </div>
-                ))}
+          {(selectedBlockData.type === 'SELECT' || selectedBlockData.type === 'CHECKBOX') && (() => {
+            const currentOptions = normalizeOptions(selectedBlockData.options)
+            return (
+              <div style={{ marginBottom: 20 }}>
+                <label
+                  style={{
+                    display: 'block',
+                    fontSize: 11,
+                    fontWeight: 700,
+                    color: '#8b9ab0',
+                    marginBottom: 8,
+                    textTransform: 'uppercase',
+                  }}
+                >
+                  Options ({currentOptions.length})
+                </label>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 8 }}>
+                  {currentOptions.map((opt, i) => (
+                    <div key={opt.id || i} style={{ display: 'flex', gap: 6 }}>
+                      <input
+                        type="text"
+                        value={opt.value}
+                        onChange={(e) => {
+                          const newOpts = currentOptions.map((o, idx) =>
+                            idx === i ? { ...o, value: e.target.value } : o
+                          )
+                          onUpdateSelectedBlock({ options: newOpts })
+                        }}
+                        style={{
+                          flex: 1,
+                          padding: '6px 10px',
+                          backgroundColor: '#0d1117',
+                          border: '1px solid #21262d',
+                          borderRadius: 6,
+                          fontSize: 12,
+                          color: '#eceae4',
+                          outline: 'none',
+                          fontFamily: "'Outfit', sans-serif",
+                        }}
+                        placeholder={`Option ${i + 1}`}
+                      />
+                      <button
+                        onClick={() => {
+                          const newOpts = currentOptions.filter((_, idx) => idx !== i)
+                          onUpdateSelectedBlock({ options: newOpts })
+                        }}
+                        style={{
+                          backgroundColor: 'rgba(239,68,68,0.1)',
+                          color: '#f87171',
+                          border: '1px solid rgba(239,68,68,0.2)',
+                          borderRadius: 6,
+                          padding: '0 8px',
+                          cursor: 'pointer',
+                          fontSize: 12,
+                        }}
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ))}
+                </div>
+                <button
+                  onClick={() => {
+                    const newOpts = [...currentOptions, { id: uid(), value: '' }]
+                    onUpdateSelectedBlock({ options: newOpts })
+                  }}
+                  style={{
+                    backgroundColor: '#161b22',
+                    color: '#6abf3c',
+                    border: '1px solid rgba(106,191,60,0.3)',
+                    borderRadius: 6,
+                    padding: '6px 12px',
+                    fontSize: 12,
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    width: '100%',
+                    fontFamily: "'Outfit', sans-serif",
+                  }}
+                >
+                  + Add Choice Option
+                </button>
               </div>
-              <button
-                onClick={() => {
-                  const newOpts = [...(selectedBlockData.options || []), { id: uid(), value: '' }]
-                  onUpdateSelectedBlock({ options: newOpts })
-                }}
-                style={{
-                  backgroundColor: '#161b22',
-                  color: '#6abf3c',
-                  border: '1px solid rgba(106,191,60,0.3)',
-                  borderRadius: 6,
-                  padding: '6px 12px',
-                  fontSize: 12,
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  width: '100%',
-                  fontFamily: "'Outfit', sans-serif",
-                }}
-              >
-                + Add Choice Option
-              </button>
-            </div>
-          )}
+            )
+          })()}
 
           {/* Rating Scale Manager */}
           {selectedBlockData.type === 'RATING' && (

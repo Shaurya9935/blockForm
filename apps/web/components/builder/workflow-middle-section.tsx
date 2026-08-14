@@ -20,6 +20,7 @@ import {
 import '@xyflow/react/dist/style.css'
 import { BLOCK_CONFIGS, type BlockType } from './builder-left-sidebar'
 import type { FormBlockData } from './builder-right-sidebar'
+import { normalizeOptions } from '~/lib/utils'
 
 // ─── Custom Nodes ─────────────────────────────────────────────────────────────
 
@@ -222,19 +223,22 @@ const FieldNodeComponent: React.FC<NodeProps> = ({ id, data, selected }) => {
             </div>
           )}
 
-          {(blockData.type === 'SELECT' || blockData.type === 'CHECKBOX') && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-              {(blockData.options || []).slice(0, 3).map((opt, i) => (
-                <div key={opt.id || i} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#8b9ab0' }}>
-                  <div style={{ width: 12, height: 12, border: '1px solid #2d3741', borderRadius: blockData.type === 'CHECKBOX' ? 3 : 6 }} />
-                  <span>{opt.value || `Option ${i + 1}`}</span>
-                </div>
-              ))}
-              {(blockData.options || []).length > 3 && (
-                <div style={{ fontSize: 10, color: '#4e5a6a' }}>+{(blockData.options || []).length - 3} more options</div>
-              )}
-            </div>
-          )}
+          {(blockData.type === 'SELECT' || blockData.type === 'CHECKBOX') && (() => {
+            const options = normalizeOptions(blockData.options)
+            return (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                {options.slice(0, 3).map((opt, i) => (
+                  <div key={opt.id || i} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#8b9ab0' }}>
+                    <div style={{ width: 12, height: 12, border: '1px solid #2d3741', borderRadius: blockData.type === 'CHECKBOX' ? 3 : 6 }} />
+                    <span>{opt.value || `Option ${i + 1}`}</span>
+                  </div>
+                ))}
+                {options.length > 3 && (
+                  <div style={{ fontSize: 10, color: '#4e5a6a' }}>+{options.length - 3} more options</div>
+                )}
+              </div>
+            )
+          })()}
 
           {blockData.type === 'RATING' && (
             <div style={{ display: 'flex', gap: 4, color: '#fbbf24', fontSize: 16 }}>

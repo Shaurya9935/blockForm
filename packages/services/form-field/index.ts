@@ -26,6 +26,9 @@ class FormFieldService {
       isRequired,
       index,
       type,
+      config,
+      workflowX,
+      workflowY,
     } = await createFormFieldInput.parseAsync(payload);
 
     const result = await db
@@ -39,6 +42,9 @@ class FormFieldService {
         isRequired: isRequired ?? false,
         index,
         type,
+        config: config ?? null,
+        workflowX: workflowX ?? null,
+        workflowY: workflowY ?? null,
       })
       .returning({
         id: formFieldsTable.id,
