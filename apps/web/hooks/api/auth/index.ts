@@ -54,3 +54,20 @@ export const useSignIn = () => {
     status,
   };
 };
+
+export const useGetLoggedInUserInfo = () => {
+  const { data, isLoading, isError, error, refetch } = trpc.auth.getLoggedInUserInfo.useQuery(
+    undefined,
+    {
+      retry: false,
+    }
+  );
+
+  return {
+    user: data,
+    isLoading,
+    isError,
+    error,
+    refetch,
+  };
+};

@@ -1,10 +1,14 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { GrassBlock, PixelLandscape } from "./pixel-art";
 
 export function CTASection() {
+  const router = useRouter();
+
   return (
     <section
+      id="cta-section"
       style={{
         padding: '100px 24px 0',
         position: 'relative',
@@ -68,6 +72,7 @@ export function CTASection() {
 
         <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
           <button
+            onClick={() => router.push('/signup')}
             style={{
               backgroundColor: '#6abf3c',
               color: '#0d1117',

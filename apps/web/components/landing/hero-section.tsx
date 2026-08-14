@@ -503,6 +503,12 @@ export function HeroSection() {
                   (e.currentTarget as HTMLElement).style.boxShadow =
                     '0 4px 20px rgba(106,191,60,0.3)';
                 }}
+                onClick={() => {
+                  const el = document.getElementById('cta-section');
+                  if (el) {
+                    el.scrollIntoView({ behavior: 'smooth' });
+                  }
+                }}
               >
                 <span>▶</span> Start Building
               </button>

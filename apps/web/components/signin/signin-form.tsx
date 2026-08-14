@@ -16,7 +16,6 @@ export function SignInForm({ onGoSignup }: { onGoSignup?: () => void }) {
   const [showPw, setShowPw] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [submitted, setSubmitted] = useState(false);
 
   const validate = () => {
     const e: Record<string, string> = {};
@@ -38,32 +37,11 @@ export function SignInForm({ onGoSignup }: { onGoSignup?: () => void }) {
         email,
         password,
       });
-      setSubmitted(true);
-      setTimeout(() => {
-        router.push('/home');
-      }, 1000);
+      router.push('/dashboard');
     } catch (err: any) {
       setErrors({ form: err?.message || 'Invalid email or password' });
     }
   };
-
-  if (submitted) {
-    return (
-      <div className="flex flex-col items-center justify-center gap-5 py-12 text-center">
-        <div className="w-16 h-16 rounded-xl bg-[rgba(106,191,60,0.12)] border border-[rgba(106,191,60,0.35)] flex items-center justify-center text-2xl">
-          ✓
-        </div>
-        <div>
-          <div className="text-[20px] font-extrabold text-[#eceae4] mb-2">
-            Signed in successfully!
-          </div>
-          <div className="text-[14px] text-[#6e7a8a] leading-relaxed">
-            Redirecting you to your workspace...
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <form onSubmit={handleSubmit} noValidate>

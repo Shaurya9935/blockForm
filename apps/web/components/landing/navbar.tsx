@@ -1,9 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 export function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const router = useRouter();
 
   return (
     <nav
@@ -22,7 +25,7 @@ export function Navbar() {
       <div style={{ maxWidth: 1280, margin: '0 auto', padding: '0 24px' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 64 }}>
           {/* Logo */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none' }}>
             <div style={{ display: 'flex', gap: 2 }}>
               <div style={{ width: 10, height: 10, backgroundColor: '#6abf3c', borderRadius: 1 }} />
               <div style={{ width: 10, height: 10, backgroundColor: '#4e9c2e', borderRadius: 1, marginTop: 5 }} />
@@ -30,7 +33,7 @@ export function Navbar() {
             <span style={{ fontFamily: "'Press Start 2P', monospace", fontSize: 13, color: '#eceae4', letterSpacing: '-0.5px' }}>
               Block<span style={{ color: '#6abf3c' }}>Form</span>
             </span>
-          </div>
+          </Link>
 
           {/* Desktop links */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 32 }} className="bf-hidden-mobile">
@@ -55,14 +58,15 @@ export function Navbar() {
 
           {/* CTA group */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <a
-              href="#"
+            <Link
+              href="/signin"
               style={{ color: '#8b9ab0', fontSize: 14, fontWeight: 500, textDecoration: 'none' }}
               className="bf-hidden-mobile"
             >
               Login
-            </a>
+            </Link>
             <button
+              onClick={() => router.push('/signup')}
               style={{
                 backgroundColor: '#6abf3c',
                 color: '#0d1117',
@@ -119,7 +123,7 @@ export function Navbar() {
               gap: 16,
             }}
           >
-            {['Product', 'Templates', 'Pricing', 'API', 'Login'].map((item) => (
+            {['Product', 'Templates', 'Pricing', 'API'].map((item) => (
               <a
                 key={item}
                 href="#"
@@ -128,6 +132,33 @@ export function Navbar() {
                 {item}
               </a>
             ))}
+            <Link
+              href="/signin"
+              style={{ color: '#8b9ab0', fontSize: 15, textDecoration: 'none' }}
+              onClick={() => setMobileOpen(false)}
+            >
+              Login
+            </Link>
+            <button
+              onClick={() => {
+                setMobileOpen(false);
+                router.push('/signup');
+              }}
+              style={{
+                backgroundColor: '#6abf3c',
+                color: '#0d1117',
+                border: 'none',
+                borderRadius: 6,
+                padding: '8px 18px',
+                fontSize: 13,
+                fontWeight: 700,
+                fontFamily: "'Outfit', sans-serif",
+                cursor: 'pointer',
+                alignSelf: 'flex-start',
+              }}
+            >
+              Start Building
+            </button>
           </div>
         )}
       </div>

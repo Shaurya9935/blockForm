@@ -10,11 +10,15 @@ import { FormCard, EmptyForms } from '~/components/dashboard/form-cards'
 import { BlueprintCard, BLUEPRINTS } from '~/components/dashboard/blueprint-cards'
 import { IconPlus } from '~/components/dashboard/icons'
 import { useGetForms } from '~/hooks/api/form'
+import { useGetLoggedInUserInfo } from '~/hooks/api/auth'
+import { SessionExpiredModal } from '~/components/dashboard/session-expired-modal'
 
 export default function DashboardPage({ onBack }: { onBack?: () => void }) {
   const router = useRouter()
   const [activeNav, setActiveNav] = useState('dashboard')
   const [sidebarOpen, setSidebarOpen] = useState(true)
+
+  const { user, isLoading: userLoading, isError: userError, error: userErr } = useGetLoggedInUserInfo()
   const { forms, isLoading, isError, error } = useGetForms()
 
   const handleCreateForm = () => router.push('/dashboard/forms/builder')
@@ -26,13 +30,25 @@ export default function DashboardPage({ onBack }: { onBack?: () => void }) {
     }
   }
 
+  const isUnauthorized = Boolean(
+    (!userLoading && (userError || !user)) ||
+    (isError &&
+      (error?.message?.toLowerCase().includes('unauthorized') ||
+        error?.message?.toLowerCase().includes('not authenticated') ||
+        error?.message?.toLowerCase().includes('jwt') ||
+        error?.message?.toLowerCase().includes('login')))
+  )
+
   const displayForms = forms || []
   const totalFormCount = displayForms.length
 
   return (
     <>
       <DashStyles />
-      <div className="min-h-screen bg-[#0a0e14] font-['Outfit']">
+      <div className="min-h-screen bg-[#0a0e14] font-['Outfit'] relative">
+        {/* Session Expired / Unauthorized Modal */}
+        <SessionExpiredModal isOpen={isUnauthorized} />
+
         {/* Sidebar */}
         <Sidebar
           active={activeNav}

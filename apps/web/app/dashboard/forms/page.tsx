@@ -7,6 +7,8 @@ import { Sidebar } from '~/components/dashboard/sidebar'
 import { Header } from '~/components/dashboard/header'
 import { CreateFormModal } from '~/components/dashboard/create-form-modal'
 import { useGetForms, useGetForm } from '~/hooks/api/form'
+import { useGetLoggedInUserInfo } from '~/hooks/api/auth'
+import { SessionExpiredModal } from '~/components/dashboard/session-expired-modal'
 import { SingleFormView } from '~/components/form/single-form-view'
 import { FormsGridView } from '~/components/form/forms-grid-view'
 
@@ -21,8 +23,9 @@ function FormsContent() {
   const [searchQuery, setSearchQuery] = useState('')
   const [activeTab, setActiveTab] = useState<'fields' | 'preview'>('fields')
 
-  // TRPC Hooks
-  const { forms, isLoading: formsLoading } = useGetForms()
+  // Auth & TRPC Hooks
+  const { user, isLoading: userLoading, isError: userError } = useGetLoggedInUserInfo()
+  const { forms, isLoading: formsLoading, isError: formsError, error: formsErr } = useGetForms()
   const { form, isLoading: formLoading } = useGetForm(selectedFormId || '')
 
   // Navigation handler
@@ -35,6 +38,15 @@ function FormsContent() {
     }
   }
 
+  const isUnauthorized = Boolean(
+    (!userLoading && (userError || !user)) ||
+    (formsError &&
+      (formsErr?.message?.toLowerCase().includes('unauthorized') ||
+        formsErr?.message?.toLowerCase().includes('not authenticated') ||
+        formsErr?.message?.toLowerCase().includes('jwt') ||
+        formsErr?.message?.toLowerCase().includes('login')))
+  )
+
   const filteredForms = (forms || []).filter(
     (f) =>
       f.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -44,7 +56,10 @@ function FormsContent() {
   return (
     <>
       <DashStyles />
-      <div className="min-h-screen bg-[#0a0e14] font-['Outfit']">
+      <div className="min-h-screen bg-[#0a0e14] font-['Outfit'] relative">
+        {/* Session Expired / Unauthorized Modal */}
+        <SessionExpiredModal isOpen={isUnauthorized} />
+
         {/* Sidebar */}
         <Sidebar
           active={activeNav}

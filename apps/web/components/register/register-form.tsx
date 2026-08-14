@@ -9,6 +9,7 @@ import { OAuthGroup } from "./oauth-buttons";
 import { StackedBlocksDecor } from "./stacked-blocks-decor";
 
 export function RegisterForm({ onGoLogin }: { onGoLogin: () => void }) {
+  const router = useRouter();
   const { createUserWithEmailAndPasswordAsync, isPending } = useSignUp();
 
   const [name, setName] = useState('');
@@ -43,6 +44,9 @@ export function RegisterForm({ onGoLogin }: { onGoLogin: () => void }) {
         password,
       });
       setSubmitted(true);
+      setTimeout(() => {
+        router.push('/signin');
+      }, 1500);
     } catch (err: any) {
       setErrors({ form: err?.message || 'Failed to create user account' });
     }
@@ -61,14 +65,14 @@ export function RegisterForm({ onGoLogin }: { onGoLogin: () => void }) {
           <div className="text-[14px] text-[#6e7a8a] leading-relaxed">
             Welcome to BlockForm, {name.split(' ')[0]}.
             <br />
-            Check your email to verify your account.
+            Redirecting you to sign in...
           </div>
         </div>
         <button
-          onClick={onGoLogin}
+          onClick={() => router.push('/signin')}
           className="bg-[#6abf3c] text-[#0d1117] border-none rounded-lg px-7 py-3 text-[14px] font-bold font-['Outfit'] cursor-pointer hover:bg-[#7dd44a] transition-colors"
         >
-          Go to Dashboard →
+          Go to Sign In →
         </button>
       </div>
     );
