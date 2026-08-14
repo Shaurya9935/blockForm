@@ -8,7 +8,6 @@ import { Header } from '~/components/dashboard/header'
 import { WelcomeCard } from '~/components/dashboard/welcome-card'
 import { FormCard, EmptyForms } from '~/components/dashboard/form-cards'
 import { BlueprintCard, BLUEPRINTS } from '~/components/dashboard/blueprint-cards'
-import { BlockFormBuilder } from '~/components/dashboard/block-form-builder'
 import { IconPlus } from '~/components/dashboard/icons'
 import { useGetForms } from '~/hooks/api/form'
 
@@ -27,14 +26,13 @@ export default function DashboardPage({ onBack }: { onBack?: () => void }) {
     }
   }
 
-  const displayForms =   (forms || [])
+  const displayForms = forms || []
   const totalFormCount = displayForms.length
 
   return (
     <>
       <DashStyles />
-      <div style={{ minHeight: '100vh', backgroundColor: '#0a0e14', fontFamily: "'Outfit', sans-serif" }}>
-
+      <div className="min-h-screen bg-[#0a0e14] font-['Outfit']">
         {/* Sidebar */}
         <Sidebar
           active={activeNav}
@@ -45,84 +43,40 @@ export default function DashboardPage({ onBack }: { onBack?: () => void }) {
         />
 
         {/* Main layout — offset by sidebar width on desktop */}
-        <div
-          className="dash-layout"
-          style={{ marginLeft: 240, minHeight: '100vh', display: 'flex', flexDirection: 'column' }}
-        >
+        <div className="dash-layout ml-[240px] min-h-screen flex flex-col">
           {/* Header */}
           <Header onMenuToggle={() => setSidebarOpen(!sidebarOpen)} onCreateForm={handleCreateForm} />
 
           {/* Content */}
-          <main style={{ flex: 1, padding: '28px 28px 48px' }}>
-
+          <main className="flex-1 p-[28px_28px_48px]">
             {/* Welcome card */}
-            <section style={{ marginBottom: 24 }}>
+            <section className="mb-6">
               <WelcomeCard onCreateForm={handleCreateForm} />
             </section>
 
             {/* My Forms */}
-            <section style={{ marginBottom: 32 }}>
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  marginBottom: 16,
-                  flexWrap: 'wrap',
-                  gap: 10,
-                }}
-              >
+            <section className="mb-8">
+              <div className="flex items-center justify-between mb-4 flex-wrap gap-2.5">
                 <div>
-                  <h2 style={{ margin: 0, fontSize: 18, fontWeight: 800, color: '#eceae4', letterSpacing: '-0.3px' }}>
+                  <h2 className="m-0 text-[18px] font-extrabold text-[#eceae4] tracking-[-0.3px]">
                     My Forms
                   </h2>
-                  <div style={{ fontSize: 12, color: '#4e5a6a', marginTop: 2 }}>
-                    {isLoading ? 'Loading forms...' : `${totalFormCount} form${totalFormCount === 1 ? '' : 's'} in your workspace`}
+                  <div className="text-[12px] text-[#4e5a6a] mt-0.5">
+                    {isLoading
+                      ? 'Loading forms...'
+                      : `${totalFormCount} form${totalFormCount === 1 ? '' : 's'} in your workspace`}
                   </div>
                 </div>
-                <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-
+                <div className="flex gap-2 items-center">
                   <button
                     onClick={() => router.push('/dashboard/forms')}
-                    style={{
-                      background: 'none',
-                      border: 'none',
-                      color: '#6abf3c',
-                      fontSize: 13,
-                      fontWeight: 600,
-                      fontFamily: "'Outfit', sans-serif",
-                      cursor: 'pointer',
-                      padding: 0,
-                    }}
+                    className="bg-transparent border-none text-[#6abf3c] text-[13px] font-semibold font-['Outfit'] cursor-pointer p-0 hover:underline"
                   >
                     View all →
                   </button>
                   <button
                     onClick={handleCreateForm}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 6,
-                      backgroundColor: '#6abf3c',
-                      color: '#0d1117',
-                      border: 'none',
-                      borderRadius: 7,
-                      padding: '8px 16px',
-                      fontSize: 13,
-                      fontWeight: 700,
-                      fontFamily: "'Outfit', sans-serif",
-                      cursor: 'pointer',
-                      transition: 'all 0.2s',
-                      boxShadow: '0 2px 12px rgba(106,191,60,0.2)',
-                    }}
-                    onMouseEnter={(e) => {
-                      ;(e.currentTarget as HTMLElement).style.backgroundColor = '#7dd44a'
-                      ;(e.currentTarget as HTMLElement).style.transform = 'translateY(-1px)'
-                    }}
-                    onMouseLeave={(e) => {
-                      ;(e.currentTarget as HTMLElement).style.backgroundColor = '#6abf3c'
-                      ;(e.currentTarget as HTMLElement).style.transform = 'translateY(0)'
-                    }}
+                    className="flex items-center gap-1.5 bg-[#6abf3c] text-[#0d1117] border-none rounded-[7px] px-4 py-2 text-[13px] font-bold font-['Outfit'] cursor-pointer transition-all shadow-[0_2px_12px_rgba(106,191,60,0.2)] hover:bg-[#7dd44a] hover:-translate-y-0.5"
                   >
                     <IconPlus />
                     Create Form
@@ -131,47 +85,22 @@ export default function DashboardPage({ onBack }: { onBack?: () => void }) {
               </div>
 
               {isLoading ? (
-                <div
-                  style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(4, 1fr)',
-                    gap: 14,
-                  }}
-                >
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-[14px]">
                   {[1, 2, 3, 4].map((n) => (
                     <div
                       key={n}
-                      style={{
-                        height: 220,
-                        backgroundColor: '#161b22',
-                        border: '1px solid #21262d',
-                        borderRadius: 10,
-                        opacity: 0.6,
-                        animation: 'pulse 1.5s infinite ease-in-out',
-                      }}
+                      className="h-[220px] bg-[#161b22] border border-[#21262d] rounded-[10px] opacity-60 animate-pulse"
                     />
                   ))}
                 </div>
               ) : isError ? (
-                <div
-                  style={{
-                    padding: '24px',
-                    backgroundColor: '#161b22',
-                    border: '1px solid #2d3741',
-                    borderRadius: 10,
-                    color: '#f87171',
-                    fontSize: 14,
-                  }}
-                >
+                <div className="p-6 bg-[#161b22] border border-[#2d3741] rounded-[10px] text-[#f87171] text-[14px]">
                   Failed to load forms: {error?.message || 'Unknown error'}
                 </div>
               ) : displayForms.length === 0 ? (
                 <EmptyForms onCreateForm={handleCreateForm} />
               ) : (
-                <div
-                  className="forms-grid"
-                  style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14 }}
-                >
+                <div className="forms-grid grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-[14px]">
                   {displayForms.map((f, idx) => (
                     <FormCard key={f.id} form={f} index={idx} />
                   ))}
@@ -180,41 +109,26 @@ export default function DashboardPage({ onBack }: { onBack?: () => void }) {
             </section>
 
             {/* Blueprints */}
-            <section style={{ marginBottom: 32 }}>
-              <div style={{ marginBottom: 16 }}>
-                <h2 style={{ margin: '0 0 4px', fontSize: 18, fontWeight: 800, color: '#eceae4', letterSpacing: '-0.3px' }}>
+            <section className="mb-8">
+              <div className="mb-4">
+                <h2 className="m-0 mb-1 text-[18px] font-extrabold text-[#eceae4] tracking-[-0.3px]">
                   Blueprints
                 </h2>
-                <div style={{ fontSize: 12, color: '#4e5a6a' }}>Start building faster with ready-made forms.</div>
+                <div className="text-[12px] text-[#4e5a6a]">Start building faster with ready-made forms.</div>
               </div>
-              <div
-                className="blueprints-grid"
-                style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14 }}
-              >
-                {BLUEPRINTS.map((bp) => <BlueprintCard key={bp.name} bp={bp} />)}
+              <div className="blueprints-grid grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-[14px]">
+                {BLUEPRINTS.map((bp) => (
+                  <BlueprintCard key={bp.name} bp={bp} />
+                ))}
               </div>
             </section>
 
             {/* Back link */}
             {onBack && (
-              <div style={{ marginTop: 32, paddingTop: 24, borderTop: '1px solid #21262d' }}>
+              <div className="mt-8 pt-6 border-t border-[#21262d]">
                 <button
                   onClick={onBack}
-                  style={{
-                    background: 'none',
-                    border: 'none',
-                    color: '#4e5a6a',
-                    fontSize: 13,
-                    cursor: 'pointer',
-                    fontFamily: "'Outfit', sans-serif",
-                    padding: 0,
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 6,
-                    transition: 'color 0.15s',
-                  }}
-                  onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.color = '#eceae4')}
-                  onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.color = '#4e5a6a')}
+                  className="bg-transparent border-none text-[#4e5a6a] text-[13px] cursor-pointer font-['Outfit'] p-0 flex items-center gap-1.5 transition-colors hover:text-[#eceae4]"
                 >
                   ← Back to landing
                 </button>
