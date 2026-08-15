@@ -1,6 +1,7 @@
 'use client'
 
 import React from 'react'
+import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { PreviewFieldInput } from './preview-field-input'
 
@@ -23,6 +24,8 @@ export function SingleFormView({
   onBack,
   onEditForm,
 }: SingleFormViewProps) {
+  const router = useRouter()
+
   return (
     <div>
       {/* Back button & Form Header */}
@@ -56,16 +59,17 @@ export function SingleFormView({
               Form Fields ({form?.fields?.length || 0})
             </button>
             <button
-              onClick={() => setActiveTab('preview')}
+              onClick={() => router.push(`/dashboard/forms/preview?id=${formId}`)}
               className={`border-none rounded-md px-3.5 py-1.5 text-[12px] font-bold cursor-pointer transition-all ${
                 activeTab === 'preview'
                   ? 'bg-[#6abf3c] text-[#0d1117]'
                   : 'bg-transparent text-[#8b9ab0] hover:text-[#eceae4]'
               }`}
             >
-              Live Preview
+              Live Preview ↗
             </button>
           </div>
+
 
           <button
             onClick={onEditForm}

@@ -36,6 +36,13 @@
       "when": 1786525188683,
       "tag": "0004_early_overlord",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1786777075387,
+      "tag": "0005_fast_norman_osborn",
+      "breakpoints": true
     }
   ]
 }

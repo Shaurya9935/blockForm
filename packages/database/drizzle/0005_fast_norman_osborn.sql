@@ -1,0 +1,2 @@
+CREATE TYPE "public"."form_theme" AS ENUM('overworld', 'nether', 'end', 'diamond', 'cyberpunk', 'retro');--> statement-breakpoint
+ALTER TABLE "forms_table" ADD COLUMN "theme" "form_theme" DEFAULT 'overworld' NOT NULL;
