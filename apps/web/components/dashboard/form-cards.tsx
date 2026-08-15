@@ -42,16 +42,18 @@ export interface FormCardProps {
     createdAt?: Date | string | null
     updatedAt?: Date | string | null
     edited?: string
-    theme?: 'college' | 'event' | 'startup' | 'gaming'
+    theme?: string | null
   }
   index?: number
 }
+
 
 export function FormCard({ form, index = 0 }: FormCardProps) {
   const router = useRouter()
   const [hov, setHov] = useState(false)
 
-  const themeKey = (form.theme || THEMES[index % THEMES.length]) as keyof typeof THUMB_MAP
+  const themeKey = ((form.theme && form.theme in THUMB_MAP) ? form.theme : THEMES[index % THEMES.length]) as keyof typeof THUMB_MAP
+
   const title = form.title || form.name || 'Untitled Form'
   const description = form.description || form.desc || 'No description provided.'
   const status = form.status || 'published'

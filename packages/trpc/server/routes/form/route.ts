@@ -29,6 +29,8 @@ import {
   submitFormOutputModel,
   updateFormFieldInputModel,
   updateFormFieldOutputModel,
+  updateFormInputModel,
+  updateFormOutputModel,
 } from "./model";
 import { formFieldService, formService, formSubmissionService } from "../../services";
 
@@ -48,16 +50,33 @@ export const formRouter = router({
     .input(createFormInputModel)
     .output(createFormOutputModel)
     .mutation(async ({ input, ctx }) => {
-      const { title, description } = input;
+      const { title, description, theme } = input;
 
       const { id } = await formService.createForm({
         title,
         description,
+        theme,
         createdBy: ctx.user.id,
       });
 
       return { id };
     }),
+
+  updateForm: authenticatedProcedure
+    .meta({
+      openapi: {
+        method: "POST",
+        path: getPath("/updateForm"),
+        tags: TAGS,
+        protect: true,
+      },
+    })
+    .input(updateFormInputModel)
+    .output(updateFormOutputModel)
+    .mutation(async ({ input }) => {
+      return formService.updateForm(input);
+    }),
+
 
   listForms: authenticatedProcedure
     .meta({

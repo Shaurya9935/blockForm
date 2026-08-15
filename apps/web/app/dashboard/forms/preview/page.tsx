@@ -1,10 +1,10 @@
 'use client'
 
-import React, { useState, useMemo, Suspense } from 'react'
+import React, { useState, useMemo, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { toast } from 'sonner'
 import { DashStyles } from '~/components/dashboard/dash-styles'
-import { useGetForm } from '~/hooks/api/form'
+import { useGetForm, useUpdateForm } from '~/hooks/api/form'
 import { useGetLoggedInUserInfo } from '~/hooks/api/auth'
 import { SessionExpiredModal } from '~/components/dashboard/session-expired-modal'
 import { PreviewFieldInput } from '~/components/form/preview-field-input'
@@ -80,6 +80,28 @@ function FormPreviewContent() {
   // Auth & Form Hooks
   const { user, isLoading: userLoading, isError: userError } = useGetLoggedInUserInfo()
   const { form, isLoading: formLoading, error: formErr } = useGetForm(formId)
+  const { updateFormAsync } = useUpdateForm()
+
+  useEffect(() => {
+    if (form?.theme) {
+      setSelectedTheme((form.theme as ThemeId) || 'overworld')
+    }
+  }, [form?.theme])
+
+  const handleSelectTheme = async (themeId: ThemeId) => {
+    setSelectedTheme(themeId)
+    if (formId) {
+      try {
+        await updateFormAsync({
+          formId,
+          theme: themeId as any,
+        })
+        toast.success(`Theme updated to ${themeId === 'overworld' ? 'Overworld' : 'Default'}`)
+      } catch (err: any) {
+        toast.error(err?.message || 'Failed to save theme setting')
+      }
+    }
+  }
 
   const isUnauthorized = Boolean(
     (!userLoading && (userError || !user)) ||
@@ -98,6 +120,7 @@ function FormPreviewContent() {
     <>
       <DashStyles />
       <div className="min-h-screen bg-[#0a0e14] font-['Outfit'] flex flex-col relative overflow-hidden">
+
         {/* Session Expired / Unauthorized Modal */}
         <SessionExpiredModal isOpen={isUnauthorized} />
 
@@ -241,8 +264,9 @@ function FormPreviewContent() {
                 return (
                   <div
                     key={theme.id}
-                    onClick={() => setSelectedTheme(theme.id)}
+                    onClick={() => handleSelectTheme(theme.id)}
                     className={`p-4 rounded-xl border cursor-pointer transition-all ${
+
                       isActive
                         ? 'bg-[#161b22] border-[#6abf3c] shadow-[0_4px_20px_rgba(106,191,60,0.15)] ring-1 ring-[#6abf3c]'
                         : 'bg-[#161b22]/50 border-[#21262d] hover:border-[#384350] hover:bg-[#161b22]'

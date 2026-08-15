@@ -32,6 +32,39 @@ export const useCreateForm = () => {
   };
 };
 
+export const useUpdateForm = () => {
+  const utils = trpc.useUtils();
+
+  const {
+    mutateAsync: updateFormAsync,
+    mutate: updateForm,
+    error,
+    failureCount,
+    isError,
+    isIdle,
+    isPending,
+    isSuccess,
+    status,
+  } = trpc.form.updateForm.useMutation({
+    onSuccess: async () => {
+      await utils.form.invalidate();
+    },
+  });
+
+  return {
+    updateForm,
+    updateFormAsync,
+    error,
+    failureCount,
+    isError,
+    isIdle,
+    isSuccess,
+    isPending,
+    status,
+  };
+};
+
+
 export const useGetForms = () => {
   const { data: forms, error, isFetched, isFetching, isLoading, isError, status } =
     trpc.form.listForms.useQuery();

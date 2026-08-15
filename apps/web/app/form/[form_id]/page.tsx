@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useMemo } from 'react'
 import { useParams } from 'next/navigation'
 import { useGetForm, useSubmitForm } from '~/hooks/api/form'
 import { toast } from 'sonner'
@@ -10,6 +10,40 @@ import {
   FormSuccessState,
 } from '~/components/public-form/public-form-states'
 import { PublicFormContainer } from '~/components/public-form/public-form-container'
+import { OverworldTheme, type Question as OverworldQuestion } from '~/components/themes/overworld'
+import { getOptionValues } from '~/lib/utils'
+
+function mapFormFieldsToOverworldQuestions(fields: any[]): OverworldQuestion[] {
+  if (!fields || fields.length === 0) return []
+
+  return fields.map((field, idx) => {
+    const config = (field.config as any) || {}
+    const options = getOptionValues(config.options)
+
+    let type: OverworldQuestion['type'] = 'text'
+
+    if (field.type === 'EMAIL') {
+      type = 'email'
+    } else if (field.type === 'NUMBER') {
+      type = 'number'
+    } else if (field.type === 'SELECT') {
+      type = 'dropdown'
+    } else if (field.type === 'CHECKBOX') {
+      type = 'checkbox'
+    } else {
+      type = 'text'
+    }
+
+    return {
+      id: field.id || idx + 1,
+      type,
+      question: field.label || `Question ${idx + 1}`,
+      placeholder: field.placeholder || undefined,
+      required: field.isRequired,
+      options: options.length > 0 ? options : (field.type === 'CHECKBOX' ? ['Yes'] : undefined),
+    }
+  })
+}
 
 export default function PublicFormSubmissionPage() {
   const params = useParams()
@@ -20,6 +54,10 @@ export default function PublicFormSubmissionPage() {
 
   const [formData, setFormData] = useState<Record<string, string>>({})
   const [submitted, setSubmitted] = useState(false)
+
+  const overworldQuestions = useMemo(() => {
+    return mapFormFieldsToOverworldQuestions(form?.fields || [])
+  }, [form?.fields])
 
   const handleInputChange = (fieldId: string, value: string) => {
     setFormData((prev) => ({
@@ -49,6 +87,29 @@ export default function PublicFormSubmissionPage() {
     }
   }
 
+  const handleOverworldSubmit = async (answers: Record<string | number, string | string[]>) => {
+    if (!formId || !form?.fields) return
+
+    const values = form.fields.map((field: any) => {
+      const rawVal = answers[field.id]
+      const valueStr = Array.isArray(rawVal) ? rawVal.join(', ') : (rawVal || '')
+      return {
+        formFieldId: field.id,
+        value: valueStr,
+      }
+    })
+
+    try {
+      await submitFormAsync({
+        formId,
+        values,
+      })
+      toast.success('Form response submitted successfully!')
+    } catch (err: any) {
+      toast.error(err?.message || 'Failed to submit response')
+    }
+  }
+
   if (isLoading) {
     return <FormLoadingState />
   }
@@ -62,6 +123,17 @@ export default function PublicFormSubmissionPage() {
       <FormSuccessState
         formTitle={form.title}
         onReset={() => setSubmitted(false)}
+      />
+    )
+  }
+
+  if (form.theme === 'overworld') {
+    return (
+      <OverworldTheme
+        title={form.title}
+        description={form.description || undefined}
+        questions={overworldQuestions}
+        onSubmit={handleOverworldSubmit}
       />
     )
   }

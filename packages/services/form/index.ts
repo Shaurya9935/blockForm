@@ -2,47 +2,89 @@ import db, { asc, eq } from "@repo/database";
 import { formsTable } from '@repo/database/models/form'
 import { formFieldsTable } from '@repo/database/models/form-field'
 
-import { createFormInput, createFormInputType, getFormByIdInput, GetFormByIdInputType, listFormsByUserIdInput, listFormsByUserIdInputType } from "./model";
+import {
+  createFormInput,
+  createFormInputType,
+  updateFormInput,
+  UpdateFormInputType,
+  getFormByIdInput,
+  GetFormByIdInputType,
+  listFormsByUserIdInput,
+  listFormsByUserIdInputType,
+} from "./model";
 
+class FormService {
+  public async createForm(payload: createFormInputType) {
+    const { title, description, theme, createdBy } = await createFormInput.parseAsync(payload);
 
-class FormService { 
-    public async createForm(payload: createFormInputType) {
-        const { title, description, createdBy } = await createFormInput.parseAsync(payload);
+    const formInsertResult = await db
+      .insert(formsTable)
+      .values({
+        title,
+        description: description ?? null,
+        theme: theme ?? 'overworld',
+        createdBy,
+      })
+      .returning({
+        id: formsTable.id,
+      })
 
-        const formInsertResult = await db
-        .insert(formsTable)
-        .values({
-            title,
-            description: description ?? null,
-            createdBy,
-        })
-        .returning({
-            id: formsTable.id
-        })
-        
-        if(!formInsertResult || formInsertResult.length === 0 || !formInsertResult[0]?.id) throw new Error('Something went wrong while creating form')
-
-        return {id: formInsertResult[0]?.id}
+    if (!formInsertResult || formInsertResult.length === 0 || !formInsertResult[0]?.id) {
+      throw new Error('Something went wrong while creating form')
     }
 
-    public async listFormsByUserId(payload: listFormsByUserIdInputType) {
-        const { userId } = await listFormsByUserIdInput.parseAsync(payload);
+    return { id: formInsertResult[0]?.id }
+  }
 
+  public async updateForm(payload: UpdateFormInputType) {
+    const { formId, title, description, theme } = await updateFormInput.parseAsync(payload);
 
-        const forms = await db
-        .select({
-            id: formsTable.id,
-            title: formsTable.title,
-            description: formsTable.description,
-            createdAt: formsTable.createdAt,
-            updatedAt: formsTable.updatedAt
-        })
-        .from(formsTable)
-        .where(eq(formsTable.createdBy, userId)) 
+    const updateValues: Record<string, any> = {}
+    if (title !== undefined) updateValues.title = title
+    if (description !== undefined) updateValues.description = description
+    if (theme !== undefined) updateValues.theme = theme
 
-        return forms
+    if (Object.keys(updateValues).length === 0) {
+      throw new Error('No values provided for update')
     }
-      public async getFormById(payload: GetFormByIdInputType) {
+
+    const updated = await db
+      .update(formsTable)
+      .set(updateValues)
+      .where(eq(formsTable.id, formId))
+      .returning({
+        id: formsTable.id,
+        title: formsTable.title,
+        description: formsTable.description,
+        theme: formsTable.theme,
+      })
+
+    if (!updated || updated.length === 0) {
+      throw new Error('Form not found or update failed')
+    }
+
+    return updated[0]!
+  }
+
+  public async listFormsByUserId(payload: listFormsByUserIdInputType) {
+    const { userId } = await listFormsByUserIdInput.parseAsync(payload);
+
+    const forms = await db
+      .select({
+        id: formsTable.id,
+        title: formsTable.title,
+        description: formsTable.description,
+        theme: formsTable.theme,
+        createdAt: formsTable.createdAt,
+        updatedAt: formsTable.updatedAt,
+      })
+      .from(formsTable)
+      .where(eq(formsTable.createdBy, userId))
+
+    return forms
+  }
+
+  public async getFormById(payload: GetFormByIdInputType) {
     const { formId } = await getFormByIdInput.parseAsync(payload)
 
     const rows = await db
@@ -50,6 +92,7 @@ class FormService {
         formId: formsTable.id,
         title: formsTable.title,
         description: formsTable.description,
+        theme: formsTable.theme,
         createdAt: formsTable.createdAt,
         updatedAt: formsTable.updatedAt,
         fieldId: formFieldsTable.id,
@@ -95,12 +138,12 @@ class FormService {
       id: firstRow.formId,
       title: firstRow.title,
       description: firstRow.description ?? null,
+      theme: firstRow.theme ?? 'overworld',
       createdAt: firstRow.createdAt,
       updatedAt: firstRow.updatedAt,
       fields,
     }
   }
 }
-
 
 export default FormService
