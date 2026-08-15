@@ -11,16 +11,17 @@ import {
 } from '~/components/public-form/public-form-states'
 import { PublicFormContainer } from '~/components/public-form/public-form-container'
 import { OverworldTheme, type Question as OverworldQuestion } from '~/components/themes/overworld'
+import { NetherTheme, type Question as NetherQuestion } from '~/components/themes/nether'
 import { getOptionValues } from '~/lib/utils'
 
-function mapFormFieldsToOverworldQuestions(fields: any[]): OverworldQuestion[] {
+function mapFormFieldsToQuestions(fields: any[]): (OverworldQuestion & NetherQuestion)[] {
   if (!fields || fields.length === 0) return []
 
   return fields.map((field, idx) => {
     const config = (field.config as any) || {}
     const options = getOptionValues(config.options)
 
-    let type: OverworldQuestion['type'] = 'text'
+    let type: 'text' | 'email' | 'number' | 'dropdown' | 'checkbox' = 'text'
 
     if (field.type === 'EMAIL') {
       type = 'email'
@@ -38,6 +39,7 @@ function mapFormFieldsToOverworldQuestions(fields: any[]): OverworldQuestion[] {
       id: field.id || idx + 1,
       type,
       question: field.label || `Question ${idx + 1}`,
+      description: field.description || 'Answer before continuing.',
       placeholder: field.placeholder || undefined,
       required: field.isRequired,
       options: options.length > 0 ? options : (field.type === 'CHECKBOX' ? ['Yes'] : undefined),
@@ -55,8 +57,8 @@ export default function PublicFormSubmissionPage() {
   const [formData, setFormData] = useState<Record<string, string>>({})
   const [submitted, setSubmitted] = useState(false)
 
-  const overworldQuestions = useMemo(() => {
-    return mapFormFieldsToOverworldQuestions(form?.fields || [])
+  const mappedQuestions = useMemo(() => {
+    return mapFormFieldsToQuestions(form?.fields || [])
   }, [form?.fields])
 
   const handleInputChange = (fieldId: string, value: string) => {
@@ -87,7 +89,7 @@ export default function PublicFormSubmissionPage() {
     }
   }
 
-  const handleOverworldSubmit = async (answers: Record<string | number, string | string[]>) => {
+  const handleThemeSubmit = async (answers: Record<string | number, string | string[]>) => {
     if (!formId || !form?.fields) return
 
     const values = form.fields.map((field: any) => {
@@ -127,13 +129,24 @@ export default function PublicFormSubmissionPage() {
     )
   }
 
+  if (form.theme === 'nether') {
+    return (
+      <NetherTheme
+        title={form.title}
+        description={form.description || undefined}
+        questions={mappedQuestions}
+        onSubmit={handleThemeSubmit}
+      />
+    )
+  }
+
   if (form.theme === 'overworld') {
     return (
       <OverworldTheme
         title={form.title}
         description={form.description || undefined}
-        questions={overworldQuestions}
-        onSubmit={handleOverworldSubmit}
+        questions={mappedQuestions}
+        onSubmit={handleThemeSubmit}
       />
     )
   }

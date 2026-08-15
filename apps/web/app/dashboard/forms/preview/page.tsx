@@ -9,9 +9,10 @@ import { useGetLoggedInUserInfo } from '~/hooks/api/auth'
 import { SessionExpiredModal } from '~/components/dashboard/session-expired-modal'
 import { PreviewFieldInput } from '~/components/form/preview-field-input'
 import { OverworldTheme, type Question as OverworldQuestion } from '~/components/themes/overworld'
+import { NetherTheme, type Question as NetherQuestion } from '~/components/themes/nether'
 import { getOptionValues } from '~/lib/utils'
 
-type ThemeId = 'default' | 'overworld'
+type ThemeId = 'default' | 'overworld' | 'nether'
 
 interface ThemeOption {
   id: ThemeId
@@ -33,19 +34,25 @@ const THEMES: ThemeOption[] = [
     name: 'Overworld Theme',
     icon: '⛏',
     description: 'Minecraft style 2D scene with sky gradient transitions',
+  },
+  {
+    id: 'nether',
+    name: 'Nether Theme',
+    icon: '🔥',
+    description: 'Minecraft Nether voxel cavern with lava, piglins & ghasts',
     badge: 'NEW',
   },
 ]
 
-// Field Mapper: Database Form Fields -> Overworld Questions
-function mapFormFieldsToOverworldQuestions(fields: any[]): OverworldQuestion[] {
+// Field Mapper: Database Form Fields -> Question Objects
+function mapFormFieldsToQuestions(fields: any[]): (OverworldQuestion & NetherQuestion)[] {
   if (!fields || fields.length === 0) return []
 
   return fields.map((field, idx) => {
     const config = (field.config as any) || {}
     const options = getOptionValues(config.options)
 
-    let type: OverworldQuestion['type'] = 'text'
+    let type: 'text' | 'email' | 'number' | 'dropdown' | 'checkbox' = 'text'
 
     if (field.type === 'EMAIL') {
       type = 'email'
@@ -63,6 +70,7 @@ function mapFormFieldsToOverworldQuestions(fields: any[]): OverworldQuestion[] {
       id: field.id || idx + 1,
       type,
       question: field.label || `Question ${idx + 1}`,
+      description: field.description || 'Answer before continuing.',
       placeholder: field.placeholder || undefined,
       required: field.isRequired,
       options: options.length > 0 ? options : (field.type === 'CHECKBOX' ? ['Yes'] : undefined),
@@ -75,7 +83,7 @@ function FormPreviewContent() {
   const searchParams = useSearchParams()
   const formId = searchParams.get('id') || ''
 
-  const [selectedTheme, setSelectedTheme] = useState<ThemeId>('overworld')
+  const [selectedTheme, setSelectedTheme] = useState<ThemeId>('nether')
 
   // Auth & Form Hooks
   const { user, isLoading: userLoading, isError: userError } = useGetLoggedInUserInfo()
@@ -84,7 +92,7 @@ function FormPreviewContent() {
 
   useEffect(() => {
     if (form?.theme) {
-      setSelectedTheme((form.theme as ThemeId) || 'overworld')
+      setSelectedTheme((form.theme as ThemeId) || 'nether')
     }
   }, [form?.theme])
 
@@ -96,7 +104,7 @@ function FormPreviewContent() {
           formId,
           theme: themeId as any,
         })
-        toast.success(`Theme updated to ${themeId === 'overworld' ? 'Overworld' : 'Default'}`)
+        toast.success(`Theme updated to ${themeId.charAt(0).toUpperCase() + themeId.slice(1)}`)
       } catch (err: any) {
         toast.error(err?.message || 'Failed to save theme setting')
       }
@@ -112,15 +120,14 @@ function FormPreviewContent() {
         formErr?.message?.toLowerCase().includes('login')))
   )
 
-  const overworldQuestions = useMemo(() => {
-    return mapFormFieldsToOverworldQuestions(form?.fields || [])
+  const mappedQuestions = useMemo(() => {
+    return mapFormFieldsToQuestions(form?.fields || [])
   }, [form?.fields])
 
   return (
     <>
       <DashStyles />
       <div className="min-h-screen bg-[#0a0e14] font-['Outfit'] flex flex-col relative overflow-hidden">
-
         {/* Session Expired / Unauthorized Modal */}
         <SessionExpiredModal isOpen={isUnauthorized} />
 
@@ -179,12 +186,24 @@ function FormPreviewContent() {
                   </button>
                 </div>
               </div>
+            ) : selectedTheme === 'nether' ? (
+              <div className="w-full h-full relative">
+                <NetherTheme
+                  title={form.title}
+                  description={form.description || undefined}
+                  questions={mappedQuestions}
+                  onSubmit={(answers) => {
+                    toast.success('Nether theme submission simulated!')
+                    console.log('Submitted answers:', answers)
+                  }}
+                />
+              </div>
             ) : selectedTheme === 'overworld' ? (
               <div className="w-full h-full relative">
                 <OverworldTheme
                   title={form.title}
                   description={form.description || undefined}
-                  questions={overworldQuestions}
+                  questions={mappedQuestions}
                   onSubmit={(answers) => {
                     toast.success('Overworld theme submission simulated!')
                     console.log('Submitted answers:', answers)
@@ -266,7 +285,6 @@ function FormPreviewContent() {
                     key={theme.id}
                     onClick={() => handleSelectTheme(theme.id)}
                     className={`p-4 rounded-xl border cursor-pointer transition-all ${
-
                       isActive
                         ? 'bg-[#161b22] border-[#6abf3c] shadow-[0_4px_20px_rgba(106,191,60,0.15)] ring-1 ring-[#6abf3c]'
                         : 'bg-[#161b22]/50 border-[#21262d] hover:border-[#384350] hover:bg-[#161b22]'
