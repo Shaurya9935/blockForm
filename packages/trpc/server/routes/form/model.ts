@@ -3,11 +3,13 @@ import { z } from "zod";
 export const formThemeEnumZod = z.enum([
   "overworld",
   "nether",
+  "aura",
   "end",
   "diamond",
   "cyberpunk",
   "retro",
 ]);
+
 
 export const createFormInputModel = z.object({
   title: z.string().describe('Title of the form').min(1, 'Title is required').max(55, 'title cannot be exceed 55 charcters'),

@@ -12,11 +12,13 @@ import { usersTable } from "./user";
 export const formThemeEnum = pgEnum("form_theme", [
   "overworld",
   "nether",
+  "aura",
   "end",
   "diamond",
   "cyberpunk",
   "retro",
 ]);
+
 
 export const formsTable = pgTable('forms_table', {
     id: uuid('id').primaryKey().defaultRandom(),

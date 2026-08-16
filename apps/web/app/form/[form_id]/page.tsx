@@ -12,9 +12,10 @@ import {
 import { PublicFormContainer } from '~/components/public-form/public-form-container'
 import { OverworldTheme, type Question as OverworldQuestion } from '~/components/themes/overworld'
 import { NetherTheme, type Question as NetherQuestion } from '~/components/themes/nether'
+import { AuraTheme, type Question as AuraQuestion } from '~/components/themes/aura'
 import { getOptionValues } from '~/lib/utils'
 
-function mapFormFieldsToQuestions(fields: any[]): (OverworldQuestion & NetherQuestion)[] {
+function mapFormFieldsToQuestions(fields: any[]): (OverworldQuestion & NetherQuestion & AuraQuestion)[] {
   if (!fields || fields.length === 0) return []
 
   return fields.map((field, idx) => {
@@ -125,6 +126,17 @@ export default function PublicFormSubmissionPage() {
       <FormSuccessState
         formTitle={form.title}
         onReset={() => setSubmitted(false)}
+      />
+    )
+  }
+
+  if (form.theme === 'aura') {
+    return (
+      <AuraTheme
+        title={form.title}
+        description={form.description || undefined}
+        questions={mappedQuestions}
+        onSubmit={handleThemeSubmit}
       />
     )
   }

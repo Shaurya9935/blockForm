@@ -10,9 +10,10 @@ import { SessionExpiredModal } from '~/components/dashboard/session-expired-moda
 import { PreviewFieldInput } from '~/components/form/preview-field-input'
 import { OverworldTheme, type Question as OverworldQuestion } from '~/components/themes/overworld'
 import { NetherTheme, type Question as NetherQuestion } from '~/components/themes/nether'
+import { AuraTheme, type Question as AuraQuestion } from '~/components/themes/aura'
 import { getOptionValues } from '~/lib/utils'
 
-type ThemeId = 'default' | 'overworld' | 'nether'
+type ThemeId = 'default' | 'overworld' | 'nether' | 'aura'
 
 interface ThemeOption {
   id: ThemeId
@@ -40,12 +41,18 @@ const THEMES: ThemeOption[] = [
     name: 'Nether Theme',
     icon: '🔥',
     description: 'Minecraft Nether voxel cavern with lava, piglins & ghasts',
+  },
+  {
+    id: 'aura',
+    name: 'Aura Theme',
+    icon: '⚡',
+    description: 'Cyberpunk festival pass design with real-time pass builder',
     badge: 'NEW',
   },
 ]
 
 // Field Mapper: Database Form Fields -> Question Objects
-function mapFormFieldsToQuestions(fields: any[]): (OverworldQuestion & NetherQuestion)[] {
+function mapFormFieldsToQuestions(fields: any[]): (OverworldQuestion & NetherQuestion & AuraQuestion)[] {
   if (!fields || fields.length === 0) return []
 
   return fields.map((field, idx) => {
@@ -83,7 +90,7 @@ function FormPreviewContent() {
   const searchParams = useSearchParams()
   const formId = searchParams.get('id') || ''
 
-  const [selectedTheme, setSelectedTheme] = useState<ThemeId>('nether')
+  const [selectedTheme, setSelectedTheme] = useState<ThemeId>('aura')
 
   // Auth & Form Hooks
   const { user, isLoading: userLoading, isError: userError } = useGetLoggedInUserInfo()
@@ -92,7 +99,7 @@ function FormPreviewContent() {
 
   useEffect(() => {
     if (form?.theme) {
-      setSelectedTheme((form.theme as ThemeId) || 'nether')
+      setSelectedTheme((form.theme as ThemeId) || 'aura')
     }
   }, [form?.theme])
 
@@ -100,9 +107,10 @@ function FormPreviewContent() {
     setSelectedTheme(themeId)
     if (formId) {
       try {
+        const dbTheme = themeId === 'default' ? 'overworld' : themeId
         await updateFormAsync({
           formId,
-          theme: themeId as any,
+          theme: dbTheme as any,
         })
         toast.success(`Theme updated to ${themeId.charAt(0).toUpperCase() + themeId.slice(1)}`)
       } catch (err: any) {
@@ -185,6 +193,18 @@ function FormPreviewContent() {
                     Return to Forms
                   </button>
                 </div>
+              </div>
+            ) : selectedTheme === 'aura' ? (
+              <div className="w-full h-full relative">
+                <AuraTheme
+                  title={form.title}
+                  description={form.description || undefined}
+                  questions={mappedQuestions}
+                  onSubmit={(answers) => {
+                    toast.success('Aura theme submission simulated!')
+                    console.log('Submitted answers:', answers)
+                  }}
+                />
               </div>
             ) : selectedTheme === 'nether' ? (
               <div className="w-full h-full relative">
