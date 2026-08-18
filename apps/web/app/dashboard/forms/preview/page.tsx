@@ -158,14 +158,25 @@ function FormPreviewContent() {
 
           <div className="flex items-center gap-3">
             {formId && (
-              <button
-                onClick={() => router.push(`/dashboard/forms/builder?id=${formId}`)}
-                className="bg-[#6abf3c] text-[#0d1117] border-none rounded-lg px-3.5 py-1.5 text-[12px] font-bold cursor-pointer flex items-center gap-1.5 shadow-[0_2px_12px_rgba(106,191,60,0.2)] hover:bg-[#7dd44a] transition-all"
-              >
-                ✏️ Edit Form in Builder
-              </button>
+              <>
+                <button
+                  onClick={() => router.push(`/dashboard/forms/builder?id=${formId}`)}
+                  className="bg-[#161b22] text-[#eceae4] border border-[#21262d] rounded-lg px-3.5 py-1.5 text-[12px] font-bold cursor-pointer flex items-center gap-1.5 hover:bg-[#21262d] transition-all"
+                >
+                  ✏️ Edit in Builder
+                </button>
+                <a
+                  href={`/form/${formId}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="bg-[#6abf3c] text-[#0d1117] border-none rounded-lg px-3.5 py-1.5 text-[12px] font-extrabold cursor-pointer flex items-center gap-1.5 shadow-[0_2px_12px_rgba(106,191,60,0.2)] hover:bg-[#7dd44a] transition-all no-underline"
+                >
+                  🚀 View Public Form ↗
+                </a>
+              </>
             )}
           </div>
+
         </div>
 
         {/* Main Work Area with Right Theme Sidebar */}

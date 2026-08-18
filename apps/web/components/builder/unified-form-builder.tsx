@@ -19,6 +19,7 @@ import {
   useGetFormFields,
   useCreateForm,
   useBulkCreateFormFields,
+  useUpdateForm,
 } from '~/hooks/api/form'
 import { normalizeOptions } from '~/lib/utils'
 
@@ -43,6 +44,57 @@ export interface UnifiedFormBuilderProps {
   onClose?: () => void
 }
 
+type FormThemeChoice = 'overworld' | 'nether' | 'aura' | 'default'
+
+interface ThemeOptionCard {
+  id: FormThemeChoice
+  name: string
+  icon: string
+  badge?: string
+  badgeColor?: string
+  description: string
+  accentColor: string
+}
+
+const THEME_OPTIONS: ThemeOptionCard[] = [
+  {
+    id: 'overworld',
+    name: 'Overworld Theme',
+    icon: '⛏️',
+    badge: 'POPULAR',
+    badgeColor: 'bg-[rgba(106,191,60,0.15)] text-[#6abf3c] border-[rgba(106,191,60,0.3)]',
+    description: 'Minecraft style 2D voxel landscape with procedurally drawn sky gradients & block progress bar.',
+    accentColor: '#6abf3c',
+  },
+  {
+    id: 'nether',
+    name: 'Nether Cavern Theme',
+    icon: '🔥',
+    badge: 'NEW',
+    badgeColor: 'bg-[rgba(255,92,0,0.15)] text-[#ff5c00] border-[rgba(255,92,0,0.3)]',
+    description: 'Minecraft Nether voxel cavern with lava river shimmers, Piglins, floating Ghasts & embers.',
+    accentColor: '#ff5c00',
+  },
+  {
+    id: 'aura',
+    name: 'AURA Festival Pass Theme',
+    icon: '⚡',
+    badge: 'INTERACTIVE',
+    badgeColor: 'bg-[rgba(0,240,255,0.15)] text-[#00f0ff] border-[rgba(0,240,255,0.3)]',
+    description: 'Cyberpunk event festival pass builder with real-time pass card generation & QR code.',
+    accentColor: '#00f0ff',
+  },
+  {
+    id: 'default',
+    name: 'Default Modern Dark',
+    icon: '📄',
+    badge: 'CLASSIC',
+    badgeColor: 'bg-[#21262d] text-[#eceae4] border-[#30363d]',
+    description: 'Clean modern dark interface tailored for business forms, surveys, and high-conversion leads.',
+    accentColor: '#a3e063',
+  },
+]
+
 function UnifiedCanvas({ formId }: UnifiedFormBuilderProps) {
   const router = useRouter()
   const reactFlowInstance = useReactFlow()
@@ -55,8 +107,9 @@ function UnifiedCanvas({ formId }: UnifiedFormBuilderProps) {
   const { fields, isLoading: fieldsLoading } = useGetFormFields(formId || '')
   const { createFormAsync, isPending: isCreatingForm } = useCreateForm()
   const { bulkCreateFormFieldsAsync, isPending: isBulkSaving } = useBulkCreateFormFields()
+  const { updateFormAsync, isPending: isUpdatingTheme } = useUpdateForm()
 
-  const isSaving = isCreatingForm || isBulkSaving
+  const isSaving = isCreatingForm || isBulkSaving || isUpdatingTheme
 
   // State
   const [nodes, setNodes, onNodesChange] = useNodesState<Node>([])
@@ -65,10 +118,18 @@ function UnifiedCanvas({ formId }: UnifiedFormBuilderProps) {
   const [formTitle, setFormTitle] = useState('Untitled Form Workflow')
   const [searchFilter, setSearchFilter] = useState('')
 
-  // Sync Form Title
+  // Theme Step Modal State
+  const [themeModalOpen, setThemeModalOpen] = useState(false)
+  const [selectedTheme, setSelectedTheme] = useState<FormThemeChoice>('overworld')
+  const [targetFormId, setTargetFormId] = useState<string | null>(formId || null)
+
+  // Sync Form Title & Theme
   useEffect(() => {
     if (form?.title) {
       setFormTitle(form.title)
+    }
+    if (form?.theme) {
+      setSelectedTheme((form.theme as FormThemeChoice) || 'overworld')
     }
   }, [form])
 
@@ -204,199 +265,271 @@ function UnifiedCanvas({ formId }: UnifiedFormBuilderProps) {
           return updated
         })
 
-        const nonFieldNodes = nds.filter((n) => n.type !== 'fieldNode')
-        const startNode = nonFieldNodes.find((n) => n.id === 'start-node')
-        const endNode = nonFieldNodes.find((n) => n.id === 'end-node')
-
-        const result: Node[] = []
-        if (startNode) result.push(startNode)
-        result.push(...reordered)
+        // Move endNode to the end
+        const endNode = nds.find((n) => n.id === 'end-node')
         if (endNode) {
-          result.push({
-            ...endNode,
-            position: { x: currentX, y: 180 },
-          })
+          const updatedEndNode = { ...endNode, position: { x: currentX, y: endNode.position.y } }
+          return [...reordered, updatedEndNode]
         }
 
-        return result
+        return reordered
       })
     },
     [setNodes]
   )
 
-  // Helper to build sequential graph edges
-  const buildSequentialEdges = useCallback((nodesList: Node[]): Edge[] => {
-    const newEdges: Edge[] = []
-    const fieldNodes = nodesList.filter((n) => n.type === 'fieldNode')
+  // Automatic Horizontal Flow Layout
+  const handleAutoLayout = useCallback(() => {
+    setNodes((nds) => {
+      let currentX = 420
+      const startY = 180
+      let step = 1
 
-    if (nodesList.find((n) => n.id === 'start-node')) {
-      const targetId = fieldNodes.length > 0 ? fieldNodes[0]!.id : 'end-node'
-      newEdges.push({
-        id: `e-start-${targetId}`,
-        source: 'start-node',
-        sourceHandle: 'start-out',
-        target: targetId,
-        targetHandle: targetId === 'end-node' ? 'end-in' : 'field-in',
-        animated: true,
-        style: { stroke: '#6abf3c', strokeWidth: 2 },
-        markerEnd: { type: MarkerType.ArrowClosed, color: '#6abf3c' },
+      const updated = nds.map((n) => {
+        if (n.id === 'start-node') {
+          return { ...n, position: { x: 80, y: startY } }
+        }
+        if (n.type === 'fieldNode') {
+          const data = n.data as unknown as FormBlockData
+          const nodeWithPos = {
+            ...n,
+            position: { x: currentX, y: startY },
+            data: { ...data, index: step++ },
+          }
+          currentX += 380
+          return nodeWithPos
+        }
+        if (n.id === 'end-node') {
+          return { ...n, position: { x: currentX, y: startY } }
+        }
+        return n
       })
-    }
 
-    for (let i = 0; i < fieldNodes.length; i++) {
-      const current = fieldNodes[i]!
-      const next = i < fieldNodes.length - 1 ? fieldNodes[i + 1]! : nodesList.find((n) => n.id === 'end-node')
-      if (next) {
+      // Re-connect linear edges between nodes
+      const sortedFieldIds = updated
+        .filter((n) => n.type === 'fieldNode')
+        .map((n) => n.id)
+
+      const newEdges: Edge[] = []
+      let prevId = 'start-node'
+
+      sortedFieldIds.forEach((fId) => {
         newEdges.push({
-          id: `e-${current.id}-${next.id}`,
-          source: current.id,
-          sourceHandle: 'field-out',
-          target: next.id,
-          targetHandle: next.id === 'end-node' ? 'end-in' : 'field-in',
+          id: `edge-${prevId}-${fId}`,
+          source: prevId,
+          target: fId,
+          type: 'smoothstep',
+          animated: true,
+          style: { stroke: '#6abf3c', strokeWidth: 2 },
+          markerEnd: { type: MarkerType.ArrowClosed, color: '#6abf3c' },
+        })
+        prevId = fId
+      })
+
+      if (updated.some((n) => n.id === 'end-node')) {
+        newEdges.push({
+          id: `edge-${prevId}-end-node`,
+          source: prevId,
+          target: 'end-node',
+          type: 'smoothstep',
           animated: true,
           style: { stroke: '#6abf3c', strokeWidth: 2 },
           markerEnd: { type: MarkerType.ArrowClosed, color: '#6abf3c' },
         })
       }
+
+      setEdges(newEdges)
+      return updated
+    })
+
+    toast.success('Auto-layout applied to horizontal flow')
+  }, [setNodes, setEdges])
+
+  // Load existing form fields into nodes and edges
+  useEffect(() => {
+    if (!fields || fields.length === 0) {
+      if (!formLoading && !fieldsLoading && nodes.length === 0) {
+        const initialNodes: Node[] = [
+          {
+            id: 'start-node',
+            type: 'startNode',
+            position: { x: 80, y: 180 },
+            data: { label: 'Form Start' },
+          },
+          {
+            id: 'node-default-1',
+            type: 'fieldNode',
+            position: { x: 420, y: 180 },
+            data: {
+              id: 'node-default-1',
+              label: 'Full Name',
+              labelKey: 'full_name',
+              type: 'TEXT',
+              description: 'Please enter your full name',
+              placeholder: 'John Doe',
+              isRequired: true,
+              index: 1,
+              onSelectNode: handleSelectNode,
+              onDeleteNode: handleDeleteNode,
+              onMoveNodeUp: handleMoveNodeUp,
+              onMoveNodeDown: handleMoveNodeDown,
+            },
+          },
+          {
+            id: 'node-default-2',
+            type: 'fieldNode',
+            position: { x: 800, y: 180 },
+            data: {
+              id: 'node-default-2',
+              label: 'Email Address',
+              labelKey: 'email_address',
+              type: 'EMAIL',
+              description: 'We will send confirmations to this email',
+              placeholder: 'john@example.com',
+              isRequired: true,
+              index: 2,
+              onSelectNode: handleSelectNode,
+              onDeleteNode: handleDeleteNode,
+              onMoveNodeUp: handleMoveNodeUp,
+              onMoveNodeDown: handleMoveNodeDown,
+            },
+          },
+          {
+            id: 'end-node',
+            type: 'endNode',
+            position: { x: 1180, y: 180 },
+            data: { label: 'Form Submit' },
+          },
+        ]
+
+        const initialEdges: Edge[] = [
+          {
+            id: 'edge-start-1',
+            source: 'start-node',
+            target: 'node-default-1',
+            type: 'smoothstep',
+            animated: true,
+            style: { stroke: '#6abf3c', strokeWidth: 2 },
+            markerEnd: { type: MarkerType.ArrowClosed, color: '#6abf3c' },
+          },
+          {
+            id: 'edge-1-2',
+            source: 'node-default-1',
+            target: 'node-default-2',
+            type: 'smoothstep',
+            animated: true,
+            style: { stroke: '#6abf3c', strokeWidth: 2 },
+            markerEnd: { type: MarkerType.ArrowClosed, color: '#6abf3c' },
+          },
+          {
+            id: 'edge-2-end',
+            source: 'node-default-2',
+            target: 'end-node',
+            type: 'smoothstep',
+            animated: true,
+            style: { stroke: '#6abf3c', strokeWidth: 2 },
+            markerEnd: { type: MarkerType.ArrowClosed, color: '#6abf3c' },
+          },
+        ]
+
+        setNodes(initialNodes)
+        setEdges(initialEdges)
+      }
+      return
     }
 
-    return newEdges
-  }, [])
+    // Build flow from DB fields
+    const sortedFields = [...fields].sort((a, b) => Number(a.index) - Number(b.index))
+    let currentX = 420
+    const startY = 180
 
-  // Auto Layout Flow
-  const handleAutoLayout = useCallback(() => {
-    setNodes((nds) => {
-      let currentX = 80
-      const startN = nds.find((n) => n.id === 'start-node')
-      const fieldNs = nds.filter((n) => n.type === 'fieldNode')
-      const endN = nds.find((n) => n.id === 'end-node')
-
-      const updatedNodes: Node[] = []
-
-      if (startN) {
-        updatedNodes.push({ ...startN, position: { x: currentX, y: 180 } })
-        currentX += 340
-      }
-
-      fieldNs.forEach((fn) => {
-        updatedNodes.push({ ...fn, position: { x: currentX, y: 180 } })
-        currentX += 380
-      })
-
-      if (endN) {
-        updatedNodes.push({ ...endN, position: { x: currentX, y: 180 } })
-      }
-
-      setEdges(buildSequentialEdges(updatedNodes))
-      return updatedNodes
-    })
-    toast.success('Workflow auto-aligned')
-  }, [setNodes, setEdges, buildSequentialEdges])
-
-  // Initial load effect
-  useEffect(() => {
-    if (fieldsLoading) return
-
-    const initialNodes: Node[] = [
+    const loadedNodes: Node[] = [
       {
         id: 'start-node',
         type: 'startNode',
-        position: { x: 80, y: 180 },
-        data: { title: form?.title || 'Form Entry', description: 'Respondent starts here' },
-        deletable: false,
+        position: { x: 80, y: startY },
+        data: { label: 'Form Start' },
       },
     ]
 
-    let currentX = 420
-    let stepCount = 1
+    const loadedEdges: Edge[] = []
+    let previousNodeId = 'start-node'
 
-    if (fields && fields.length > 0) {
-      fields.forEach((f) => {
-        const fieldNodeId = `node-${f.id}`
-        const config = (f.config as any) || {}
-        const posX = f.workflowX ?? currentX
-        const posY = f.workflowY ?? 180
+    sortedFields.forEach((f, idx) => {
+      const nodeId = `node-${f.id}`
+      const config = (f.config as any) || {}
 
-        initialNodes.push({
-          id: fieldNodeId,
-          type: 'fieldNode',
-          position: { x: posX, y: posY },
-          data: {
-            fieldId: f.id,
-            id: fieldNodeId,
-            label: f.label,
-            labelKey: f.labelKey,
-            type: (f.type as BlockType) || 'TEXT',
-            description: f.description || '',
-            placeholder: f.placeholder || '',
-            isRequired: f.isRequired,
-            index: stepCount++,
-            options: normalizeOptions(config.options).length > 0
-              ? normalizeOptions(config.options)
-              : ((f.type as BlockType) === 'SELECT' || (f.type as BlockType) === 'CHECKBOX'
-                  ? [{ id: uid(), value: 'Option 1' }, { id: uid(), value: 'Option 2' }]
-                  : []),
-            maxRating: config.maxRating || 5,
-            minValue: config.minValue,
-            maxValue: config.maxValue,
-            onSelectNode: handleSelectNode,
-            onDeleteNode: handleDeleteNode,
-            onMoveNodeUp: handleMoveNodeUp,
-            onMoveNodeDown: handleMoveNodeDown,
-          },
-        })
-        currentX = Math.max(currentX + 380, posX + 380)
-      })
-    } else {
-      const demoFieldId = `node-${uid()}`
-      initialNodes.push({
-        id: demoFieldId,
+      const posX = f.workflowX ?? currentX
+      const posY = f.workflowY ?? startY
+
+      loadedNodes.push({
+        id: nodeId,
         type: 'fieldNode',
-        position: { x: currentX, y: 180 },
+        position: { x: posX, y: posY },
         data: {
-          id: demoFieldId,
-          label: 'Full Name',
-          labelKey: 'full_name',
-          type: 'TEXT',
-          description: 'Please enter your legal name',
-          placeholder: 'John Doe',
-          isRequired: true,
-          index: stepCount++,
-          options: [],
-          maxRating: 5,
+          id: nodeId,
+          label: f.label,
+          labelKey: f.labelKey,
+          type: f.type as BlockType,
+          description: f.description || '',
+          placeholder: f.placeholder || '',
+          isRequired: f.isRequired,
+          index: idx + 1,
+          options: config.options || [],
+          maxRating: config.maxRating || 5,
+          minValue: config.minValue,
+          maxValue: config.maxValue,
           onSelectNode: handleSelectNode,
           onDeleteNode: handleDeleteNode,
           onMoveNodeUp: handleMoveNodeUp,
           onMoveNodeDown: handleMoveNodeDown,
         },
       })
-      currentX += 380
-    }
 
-    initialNodes.push({
-      id: 'end-node',
-      type: 'endNode',
-      position: { x: currentX, y: 180 },
-      data: { title: 'Form Completed' },
-      deletable: false,
+      loadedEdges.push({
+        id: `edge-${previousNodeId}-${nodeId}`,
+        source: previousNodeId,
+        target: nodeId,
+        type: 'smoothstep',
+        animated: true,
+        style: { stroke: '#6abf3c', strokeWidth: 2 },
+        markerEnd: { type: MarkerType.ArrowClosed, color: '#6abf3c' },
+      })
+
+      previousNodeId = nodeId
+      currentX = posX + 380
     })
 
-    setNodes(initialNodes)
-    setEdges(buildSequentialEdges(initialNodes))
-  }, [fields, fieldsLoading, form?.title, handleSelectNode, handleDeleteNode, handleMoveNodeUp, handleMoveNodeDown, buildSequentialEdges, setNodes, setEdges])
+    // Add End Node
+    loadedNodes.push({
+      id: 'end-node',
+      type: 'endNode',
+      position: { x: currentX, y: startY },
+      data: { label: 'Form Submit' },
+    })
 
-  // Update edges whenever nodes order change
-  useEffect(() => {
-    setEdges(buildSequentialEdges(nodes))
-  }, [nodes, buildSequentialEdges, setEdges])
+    loadedEdges.push({
+      id: `edge-${previousNodeId}-end-node`,
+      source: previousNodeId,
+      target: 'end-node',
+      type: 'smoothstep',
+      animated: true,
+      style: { stroke: '#6abf3c', strokeWidth: 2 },
+      markerEnd: { type: MarkerType.ArrowClosed, color: '#6abf3c' },
+    })
 
-  // Connect edges handler
+    setNodes(loadedNodes)
+    setEdges(loadedEdges)
+  }, [fields, formLoading, fieldsLoading, handleSelectNode, handleDeleteNode, handleMoveNodeUp, handleMoveNodeDown, setNodes, setEdges])
+
+  // Handle flow connections
   const onConnect = useCallback(
-    (params: Connection) =>
+    (connection: Connection) =>
       setEdges((eds) =>
         addEdge(
           {
-            ...params,
+            ...connection,
+            type: 'smoothstep',
             animated: true,
             style: { stroke: '#6abf3c', strokeWidth: 2 },
             markerEnd: { type: MarkerType.ArrowClosed, color: '#6abf3c' },
@@ -549,8 +682,8 @@ function UnifiedCanvas({ formId }: UnifiedFormBuilderProps) {
       }))
   }, [nodes])
 
-  // Save Form Handler
-  const handleSaveForm = async () => {
+  // Step 1: Save Form Fields & Open Theme Selection Modal
+  const handleProceedToThemeSelection = async () => {
     const fieldNodes = nodes.filter((n) => n.type === 'fieldNode')
     if (fieldNodes.length === 0) {
       toast.error('Add at least one field block to save the form')
@@ -558,16 +691,18 @@ function UnifiedCanvas({ formId }: UnifiedFormBuilderProps) {
     }
 
     try {
-      let targetFormId = formId
+      let currentFormId = formId || targetFormId
 
       // If no formId exists, create form first
-      if (!targetFormId) {
+      if (!currentFormId) {
         const createdForm = await createFormAsync({
           title: formTitle || 'Untitled Form',
           description: 'Created via BlockForm Builder',
         })
-        targetFormId = createdForm.id
+        currentFormId = createdForm.id
       }
+
+      setTargetFormId(currentFormId)
 
       const validTypes = ['TEXT', 'NUMBER', 'EMAIL', 'YES_NO', 'PASSWORD', 'SELECT', 'CHECKBOX', 'RATING', 'DATE']
 
@@ -602,15 +737,38 @@ function UnifiedCanvas({ formId }: UnifiedFormBuilderProps) {
       })
 
       await bulkCreateFormFieldsAsync({
-        formId: targetFormId,
+        formId: currentFormId,
         fields: payloadFields,
       })
 
-      toast.success('Form saved successfully!')
-      router.push('/dashboard/forms')
+      toast.success('Form fields saved! Now select your theme.')
+      setThemeModalOpen(true)
     } catch (err: any) {
       console.error('Save form error:', err)
       toast.error(err?.message || 'Failed to save form')
+    }
+  }
+
+  // Step 2: Save Selected Theme & Open Live Preview Page
+  const handleSaveThemeAndPreview = async () => {
+    if (!targetFormId) {
+      toast.error('Form ID is missing')
+      return
+    }
+
+    try {
+      const dbTheme = selectedTheme === 'default' ? 'overworld' : selectedTheme
+
+      await updateFormAsync({
+        formId: targetFormId,
+        theme: dbTheme as any,
+      })
+
+      toast.success(`Form theme set to ${selectedTheme.charAt(0).toUpperCase() + selectedTheme.slice(1)}!`)
+      setThemeModalOpen(false)
+      router.push(`/dashboard/forms/preview?id=${targetFormId}`)
+    } catch (err: any) {
+      toast.error(err?.message || 'Failed to save form theme')
     }
   }
 
@@ -703,7 +861,7 @@ function UnifiedCanvas({ formId }: UnifiedFormBuilderProps) {
           )}
 
           <button
-            onClick={handleSaveForm}
+            onClick={handleProceedToThemeSelection}
             disabled={isSaving}
             style={{
               backgroundColor: '#6abf3c',
@@ -720,7 +878,7 @@ function UnifiedCanvas({ formId }: UnifiedFormBuilderProps) {
               gap: 6,
             }}
           >
-            {isSaving ? 'Saving...' : 'Save Form'}
+            {isSaving ? 'Saving...' : 'Next: Select Theme →'}
           </button>
         </div>
       </header>
@@ -751,56 +909,48 @@ function UnifiedCanvas({ formId }: UnifiedFormBuilderProps) {
           <button
             onClick={() => setViewMode('workflow')}
             style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 6,
-              padding: '6px 16px',
-              borderRadius: 6,
-              border: 'none',
               backgroundColor: viewMode === 'workflow' ? '#6abf3c' : 'transparent',
               color: viewMode === 'workflow' ? '#0d1117' : '#8b9ab0',
+              border: 'none',
+              borderRadius: 6,
+              padding: '6px 16px',
               fontSize: 12,
-              fontWeight: 800,
+              fontWeight: 700,
               cursor: 'pointer',
               transition: 'all 0.15s ease',
-              fontFamily: "'Outfit', sans-serif",
             }}
           >
-            ⚡ Workflow Canvas View
+            Workflow View (Flow Graph)
           </button>
           <button
             onClick={() => setViewMode('block-list')}
             style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 6,
-              padding: '6px 16px',
-              borderRadius: 6,
-              border: 'none',
               backgroundColor: viewMode === 'block-list' ? '#6abf3c' : 'transparent',
               color: viewMode === 'block-list' ? '#0d1117' : '#8b9ab0',
+              border: 'none',
+              borderRadius: 6,
+              padding: '6px 16px',
               fontSize: 12,
-              fontWeight: 800,
+              fontWeight: 700,
               cursor: 'pointer',
               transition: 'all 0.15s ease',
-              fontFamily: "'Outfit', sans-serif",
             }}
           >
-            📋 Block Cards View
+            Block List View (Card List)
           </button>
         </div>
       </div>
 
-      {/* Main Workspace Layout */}
-      <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
-        {/* Left Sidebar (Same for both middle views) */}
+      {/* Main 3-Column Studio Work Area */}
+      <div style={{ flex: 1, display: 'flex', position: 'relative', overflow: 'hidden' }}>
+        {/* Column 1: Left Blocks Palette Sidebar */}
         <BuilderLeftSidebar
           searchFilter={searchFilter}
           setSearchFilter={setSearchFilter}
-          onAddBlock={(type) => addBlockToCanvas(type)}
+          onAddBlock={addBlockToCanvas}
         />
 
-        {/* Middle Section (Dynamically switches between Workflow and Block Cards View) */}
+        {/* Column 2: Middle Section (Workflow Flow Graph vs Block List View) */}
         {viewMode === 'workflow' ? (
           <WorkflowMiddleSection
             nodes={nodes}
@@ -816,26 +966,107 @@ function UnifiedCanvas({ formId }: UnifiedFormBuilderProps) {
             blocks={blocksList}
             selectedBlockId={selectedNodeId}
             onSelectBlock={handleSelectNode}
-            onUpdateBlock={handleUpdateBlockById}
             onDeleteBlock={handleDeleteNode}
             onMoveBlockUp={handleMoveNodeUp}
             onMoveBlockDown={handleMoveNodeDown}
-            onAddBlock={(type) => addBlockToCanvas(type)}
             onReorderBlocks={handleReorderNodes}
+            onAddBlock={addBlockToCanvas}
+            onUpdateBlock={handleUpdateBlockById}
           />
         )}
 
-        {/* Right Sidebar (Same for both middle views) */}
+        {/* Column 3: Right Properties Inspector Sidebar */}
         <BuilderRightSidebar
           selectedBlockData={selectedBlockData}
           selectedBlockId={selectedNodeId}
           onClose={() => setSelectedNodeId(null)}
           onUpdateSelectedBlock={handleUpdateSelectedNode}
-          onDeleteSelectedBlock={handleDeleteNode}
-          onMoveNodeUp={handleMoveNodeUp}
-          onMoveNodeDown={handleMoveNodeDown}
+          onDeleteSelectedBlock={selectedNodeId ? handleDeleteNode : undefined}
+          onMoveNodeUp={selectedNodeId ? handleMoveNodeUp : undefined}
+          onMoveNodeDown={selectedNodeId ? handleMoveNodeDown : undefined}
         />
+
       </div>
+
+      {/* Theme Selection Modal Step */}
+      {themeModalOpen && (
+        <div className="fixed inset-0 z-50 bg-[#080b14]/90 backdrop-blur-md flex items-center justify-center p-6 animate-in fade-in duration-200">
+          <div className="max-w-[720px] w-full bg-[#161b22] border border-[#21262d] rounded-2xl p-6 md:p-8 shadow-[0_24px_60px_rgba(0,0,0,0.8)] relative">
+            <div className="mb-6 border-b border-[#21262d] pb-5">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[rgba(106,191,60,0.12)] border border-[rgba(106,191,60,0.25)] text-[#6abf3c] text-[11px] font-extrabold uppercase tracking-wider mb-2.5">
+                <span>Step 2 of 2</span> · Theme Selection
+              </div>
+              <h2 className="text-2xl font-extrabold text-[#eceae4] tracking-[-0.5px] m-0">
+                Choose Form Theme & Presentation
+              </h2>
+              <p className="mt-1.5 mb-0 text-xs md:text-sm text-[#8b9ab0] leading-relaxed">
+                Select how respondents will visually experience your form. You can test and switch themes anytime in the live preview.
+              </p>
+            </div>
+
+            {/* Theme Cards Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+              {THEME_OPTIONS.map((theme) => {
+                const isSelected = selectedTheme === theme.id
+
+                return (
+                  <div
+                    key={theme.id}
+                    onClick={() => setSelectedTheme(theme.id)}
+                    className={`p-4 rounded-xl border cursor-pointer transition-all ${
+                      isSelected
+                        ? 'bg-[#0d1117] border-[#6abf3c] ring-1 ring-[#6abf3c] shadow-[0_4px_20px_rgba(106,191,60,0.2)]'
+                        : 'bg-[#0d1117]/50 border-[#21262d] hover:border-[#384350] hover:bg-[#0d1117]'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xl">{theme.icon}</span>
+                        <span className="text-sm font-bold text-[#eceae4]">{theme.name}</span>
+                      </div>
+
+                      {theme.badge && (
+                        <span className={`text-[9px] font-extrabold px-2 py-0.5 rounded border ${theme.badgeColor}`}>
+                          {theme.badge}
+                        </span>
+                      )}
+                    </div>
+
+                    <p className="m-0 text-xs text-[#8b9ab0] leading-relaxed">
+                      {theme.description}
+                    </p>
+                  </div>
+                )
+              })}
+            </div>
+
+            {/* Modal Actions */}
+            <div className="flex items-center justify-between pt-4 border-t border-[#21262d]">
+              <button
+                type="button"
+                onClick={() => {
+                  setThemeModalOpen(false)
+                  if (targetFormId) {
+                    router.push(`/dashboard/forms/preview?id=${targetFormId}`)
+                  }
+                }}
+                className="bg-transparent border-none text-[#8b9ab0] hover:text-[#eceae4] text-xs font-semibold cursor-pointer"
+              >
+                Skip & Preview Form ↗
+              </button>
+
+              <button
+                type="button"
+                onClick={handleSaveThemeAndPreview}
+                disabled={isSaving}
+                className="bg-[#6abf3c] text-[#0d1117] border-none rounded-xl px-6 py-3 text-sm font-extrabold cursor-pointer shadow-[0_4px_20px_rgba(106,191,60,0.3)] hover:bg-[#7dd44a] transition-all disabled:opacity-50"
+              >
+                {isSaving ? 'Applying Theme...' : 'Save Theme & Preview Form ↗'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
