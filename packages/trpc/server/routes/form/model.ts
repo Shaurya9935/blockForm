@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 export const formThemeEnumZod = z.enum([
+  "default",
   "overworld",
   "nether",
   "aura",
@@ -9,6 +10,7 @@ export const formThemeEnumZod = z.enum([
   "cyberpunk",
   "retro",
 ]);
+
 
 
 export const createFormInputModel = z.object({

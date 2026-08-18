@@ -15,7 +15,9 @@ import { NetherTheme, type Question as NetherQuestion } from '~/components/theme
 import { AuraTheme, type Question as AuraQuestion } from '~/components/themes/aura'
 import { getOptionValues } from '~/lib/utils'
 
-function mapFormFieldsToQuestions(fields: any[]): (OverworldQuestion & NetherQuestion & AuraQuestion)[] {
+import { DefaultTheme, type Question as DefaultQuestion } from '~/components/themes/default'
+
+function mapFormFieldsToQuestions(fields: any[]): (OverworldQuestion & NetherQuestion & AuraQuestion & DefaultQuestion)[] {
   if (!fields || fields.length === 0) return []
 
   return fields.map((field, idx) => {
@@ -47,6 +49,7 @@ function mapFormFieldsToQuestions(fields: any[]): (OverworldQuestion & NetherQue
     }
   })
 }
+
 
 export default function PublicFormSubmissionPage() {
   const params = useParams()
@@ -152,7 +155,19 @@ export default function PublicFormSubmissionPage() {
     )
   }
 
+  if (form.theme === 'default') {
+    return (
+      <DefaultTheme
+        title={form.title}
+        description={form.description || undefined}
+        questions={mappedQuestions}
+        onSubmit={handleThemeSubmit}
+      />
+    )
+  }
+
   if (form.theme === 'overworld') {
+
     return (
       <OverworldTheme
         title={form.title}

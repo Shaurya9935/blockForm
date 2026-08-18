@@ -11,6 +11,8 @@ import { SessionExpiredModal } from '~/components/dashboard/session-expired-moda
 import { OverworldTheme, type Question as OverworldQuestion } from '~/components/themes/overworld'
 import { NetherTheme, type Question as NetherQuestion } from '~/components/themes/nether'
 import { AuraTheme, type Question as AuraQuestion } from '~/components/themes/aura'
+import { DefaultTheme, type Question as DefaultQuestion } from '~/components/themes/default'
+
 
 interface ThemeItem {
   id: string
@@ -354,72 +356,17 @@ function ThemesContent() {
                 }}
               />
             ) : (
-              <div className="p-8 md:p-12 flex justify-center items-start min-h-full">
-                <div className="w-full max-w-[640px] bg-[#161b22] border border-[#21262d] rounded-[16px] p-8 md:p-10 shadow-[0_24px_60px_rgba(0,0,0,0.6)] my-4">
-                  <div className="border-b border-[#21262d] pb-5 mb-7">
-                    <div className="inline-block px-2.5 py-1 rounded-full bg-[rgba(106,191,60,0.12)] text-[#6abf3c] border border-[rgba(106,191,60,0.25)] text-[11px] font-bold mb-3">
-                      Default Theme
-                    </div>
-                    <h2 className="m-0 text-[24px] font-extrabold text-[#eceae4] tracking-[-0.5px]">
-                      Sample Form: Default Modern Dark
-                    </h2>
-                    <p className="mt-2 mb-0 text-[#8b9ab0] text-[14px] leading-relaxed">
-                      Clean modern glassmorphic interface designed for clarity and fast conversion.
-                    </p>
-                  </div>
-
-                  <form
-                    onSubmit={(e) => {
-                      e.preventDefault()
-                      toast.success('Default theme sample response submitted!')
-                    }}
-                  >
-                    {SAMPLE_QUESTIONS.map((q) => (
-                      <div key={q.id} className="mb-6">
-                        <label className="block text-[14px] font-bold text-[#c8d8b8] mb-1.5">
-                          {q.question} {q.required && <span className="text-[#ef4444]">*</span>}
-                        </label>
-                        {q.description && (
-                          <div className="text-[12px] text-[#4e5a6a] mb-2">{q.description}</div>
-                        )}
-
-                        {q.type === 'dropdown' ? (
-                          <select className="w-full bg-[#0d1117] border border-[#21262d] rounded-lg p-3 text-sm text-[#eceae4] outline-none">
-                            {q.options?.map((opt) => (
-                              <option key={opt} value={opt}>
-                                {opt}
-                              </option>
-                            ))}
-                          </select>
-                        ) : q.type === 'checkbox' ? (
-                          <div className="flex flex-col gap-2">
-                            {q.options?.map((opt) => (
-                              <label key={opt} className="flex items-center gap-2 text-sm text-[#eceae4] cursor-pointer">
-                                <input type="checkbox" className="accent-[#6abf3c]" />
-                                {opt}
-                              </label>
-                            ))}
-                          </div>
-                        ) : (
-                          <input
-                            type={q.type === 'email' ? 'email' : 'text'}
-                            placeholder={q.placeholder}
-                            className="w-full bg-[#0d1117] border border-[#21262d] rounded-lg p-3 text-sm text-[#eceae4] placeholder-[#4e5a6a] outline-none focus:border-[#6abf3c]"
-                          />
-                        )}
-                      </div>
-                    ))}
-
-                    <button
-                      type="submit"
-                      className="w-full py-3.5 px-4 bg-[#6abf3c] text-[#0d1117] border-none rounded-lg text-[15px] font-extrabold cursor-pointer mt-4 shadow-[0_4px_16px_rgba(106,191,60,0.25)] hover:bg-[#7dd44a] transition-all"
-                    >
-                      Submit Sample Response
-                    </button>
-                  </form>
-                </div>
-              </div>
+              <DefaultTheme
+                title="Sample Form: Default Modern Theme"
+                description="Clean indigo & slate interface with numbered step indicators and responsive controls."
+                questions={SAMPLE_QUESTIONS}
+                onSubmit={(answers) => {
+                  toast.success('Default theme sample response submitted!')
+                  console.log('Sample submitted answers:', answers)
+                }}
+              />
             )}
+
           </div>
         </div>
       )}

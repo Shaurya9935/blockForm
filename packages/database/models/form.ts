@@ -10,6 +10,7 @@ import {
 import { usersTable } from "./user";
 
 export const formThemeEnum = pgEnum("form_theme", [
+  "default",
   "overworld",
   "nether",
   "aura",
@@ -18,6 +19,7 @@ export const formThemeEnum = pgEnum("form_theme", [
   "cyberpunk",
   "retro",
 ]);
+
 
 
 export const formsTable = pgTable('forms_table', {

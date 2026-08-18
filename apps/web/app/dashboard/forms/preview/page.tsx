@@ -11,9 +11,11 @@ import { PreviewFieldInput } from '~/components/form/preview-field-input'
 import { OverworldTheme, type Question as OverworldQuestion } from '~/components/themes/overworld'
 import { NetherTheme, type Question as NetherQuestion } from '~/components/themes/nether'
 import { AuraTheme, type Question as AuraQuestion } from '~/components/themes/aura'
+import { DefaultTheme, type Question as DefaultQuestion } from '~/components/themes/default'
 import { getOptionValues } from '~/lib/utils'
 
 type ThemeId = 'default' | 'overworld' | 'nether' | 'aura'
+
 
 interface ThemeOption {
   id: ThemeId
@@ -52,7 +54,8 @@ const THEMES: ThemeOption[] = [
 ]
 
 // Field Mapper: Database Form Fields -> Question Objects
-function mapFormFieldsToQuestions(fields: any[]): (OverworldQuestion & NetherQuestion & AuraQuestion)[] {
+function mapFormFieldsToQuestions(fields: any[]): (OverworldQuestion & NetherQuestion & AuraQuestion & DefaultQuestion)[] {
+
   if (!fields || fields.length === 0) return []
 
   return fields.map((field, idx) => {
@@ -107,11 +110,12 @@ function FormPreviewContent() {
     setSelectedTheme(themeId)
     if (formId) {
       try {
-        const dbTheme = themeId === 'default' ? 'overworld' : themeId
+        const dbTheme = themeId
         await updateFormAsync({
           formId,
           theme: dbTheme as any,
         })
+
         toast.success(`Theme updated to ${themeId.charAt(0).toUpperCase() + themeId.slice(1)}`)
       } catch (err: any) {
         toast.error(err?.message || 'Failed to save theme setting')
@@ -242,58 +246,19 @@ function FormPreviewContent() {
                 />
               </div>
             ) : (
-              <div className="p-8 md:p-12 flex justify-center items-start min-h-full">
-                <div className="w-full max-w-[640px] bg-[#161b22] border border-[#21262d] rounded-[16px] p-8 md:p-10 shadow-[0_24px_60px_rgba(0,0,0,0.6)] my-4">
-                  <div className="border-b border-[#21262d] pb-5 mb-7">
-                    <div className="inline-block px-2.5 py-1 rounded-full bg-[rgba(106,191,60,0.12)] text-[#6abf3c] border border-[rgba(106,191,60,0.25)] text-[11px] font-bold mb-3">
-                      Default Theme
-                    </div>
-                    <h2 className="m-0 text-[24px] font-extrabold text-[#eceae4] tracking-[-0.5px]">
-                      {form.title}
-                    </h2>
-                    {form.description && (
-                      <p className="mt-2 mb-0 text-[#8b9ab0] text-[14px] leading-relaxed">
-                        {form.description}
-                      </p>
-                    )}
-                  </div>
-
-                  <form
-                    onSubmit={(e) => {
-                      e.preventDefault()
-                      toast.success('Form response preview submission simulated!')
-                    }}
-                  >
-                    {(!form.fields || form.fields.length === 0) ? (
-                      <div className="text-center py-10 text-[#6e7a8a] text-[14px]">
-                        This form does not have any fields configured yet.
-                      </div>
-                    ) : (
-                      form.fields.map((field: any) => (
-                        <div key={field.id} className="mb-6">
-                          <label className="block text-[14px] font-bold text-[#c8d8b8] mb-1.5">
-                            {field.label} {field.isRequired && <span className="text-[#ef4444]">*</span>}
-                          </label>
-                          {field.description && (
-                            <div className="text-[12px] text-[#4e5a6a] mb-2">{field.description}</div>
-                          )}
-
-                          <PreviewFieldInput field={field} />
-                        </div>
-                      ))
-                    )}
-
-                    <button
-                      type="submit"
-                      disabled={!form.fields || form.fields.length === 0}
-                      className="w-full py-3.5 px-4 bg-[#6abf3c] text-[#0d1117] border-none rounded-lg text-[15px] font-extrabold font-['Outfit'] cursor-pointer mt-4 shadow-[0_4px_16px_rgba(106,191,60,0.25)] hover:bg-[#7dd44a] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      Submit Response
-                    </button>
-                  </form>
-                </div>
+              <div className="w-full h-full relative">
+                <DefaultTheme
+                  title={form.title}
+                  description={form.description || undefined}
+                  questions={mappedQuestions}
+                  onSubmit={(answers) => {
+                    toast.success('Default theme submission simulated!')
+                    console.log('Submitted answers:', answers)
+                  }}
+                />
               </div>
             )}
+
           </div>
 
           {/* Right Themes Sidebar */}

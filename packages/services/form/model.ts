@@ -1,6 +1,7 @@
 import { z } from 'zod'
 
 export const formThemeZod = z.enum([
+  "default",
   "overworld",
   "nether",
   "aura",
@@ -9,6 +10,7 @@ export const formThemeZod = z.enum([
   "cyberpunk",
   "retro",
 ])
+
 
 
 export type FormThemeType = z.infer<typeof formThemeZod>

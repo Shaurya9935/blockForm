@@ -757,12 +757,13 @@ function UnifiedCanvas({ formId }: UnifiedFormBuilderProps) {
     }
 
     try {
-      const dbTheme = selectedTheme === 'default' ? 'overworld' : selectedTheme
+      const dbTheme = selectedTheme
 
       await updateFormAsync({
         formId: targetFormId,
         theme: dbTheme as any,
       })
+
 
       toast.success(`Form theme set to ${selectedTheme.charAt(0).toUpperCase() + selectedTheme.slice(1)}!`)
       setThemeModalOpen(false)

@@ -199,10 +199,8 @@ export function Sidebar({
 
             {[
               { id: 'dashboard', label: 'Dashboard', icon: <IconGrid /> },
-              { id: 'forms',     label: 'Forms',     icon: <IconList />,     badge: 12 },
+              { id: 'forms',     label: 'Forms',     icon: <IconList /> },
               { id: 'templates', label: 'Templates',  icon: <IconTemplate /> },
-              { id: 'analytics', label: 'Analytics',  icon: <IconChart /> },
-              { id: 'responses', label: 'Responses',  icon: <IconInbox />,   badge: 48 },
             ].map((item) => (
               <NavBtn
                 key={item.id}
