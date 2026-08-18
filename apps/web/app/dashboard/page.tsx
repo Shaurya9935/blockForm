@@ -29,10 +29,13 @@ export default function DashboardPage({ onBack }: { onBack?: () => void }) {
       router.push('/dashboard/forms')
     } else if (id === 'templates') {
       router.push('/dashboard/templates')
+    } else if (id === 'themes') {
+      router.push('/dashboard/themes')
     } else if (id === 'dashboard') {
       router.push('/dashboard')
     }
   }
+
 
 
   const isUnauthorized = Boolean(

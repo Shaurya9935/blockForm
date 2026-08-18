@@ -108,8 +108,11 @@ function TemplatesContent() {
       router.push('/dashboard/forms')
     } else if (navId === 'templates') {
       router.push('/dashboard/templates')
+    } else if (navId === 'themes') {
+      router.push('/dashboard/themes')
     }
   }
+
 
   const isUnauthorized = Boolean(!userLoading && (userError || !user))
 
