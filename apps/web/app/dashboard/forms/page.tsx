@@ -35,8 +35,11 @@ function FormsContent() {
       router.push('/dashboard')
     } else if (navId === 'forms') {
       router.push('/dashboard/forms')
+    } else if (navId === 'templates') {
+      router.push('/dashboard/templates')
     }
   }
+
 
   const isUnauthorized = Boolean(
     (!userLoading && (userError || !user)) ||

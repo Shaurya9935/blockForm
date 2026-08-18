@@ -22,7 +22,9 @@ export default function FormResponsesPage() {
   const handleNav = (id: string) => {
     if (id === 'dashboard') router.push('/dashboard')
     else if (id === 'forms') router.push('/dashboard/forms')
+    else if (id === 'templates') router.push('/dashboard/templates')
   }
+
 
   // Handle Submission Deletion
   const handleDeleteSubmission = async (submissionId: string) => {

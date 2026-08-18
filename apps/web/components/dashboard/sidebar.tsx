@@ -285,33 +285,6 @@ export function Sidebar({
 
           {/* Block separator */}
           <BlockSeparator />
-
-          {/* ── WORKSPACE (Account) section ────────────────────────── */}
-          <div style={{ marginBottom: 2 }}>
-            <div
-              style={{
-                padding: '10px 20px 5px',
-                fontFamily: "'Press Start 2P'",
-                fontSize: 6.5,
-                color: '#2d3d2a',
-                letterSpacing: '2px',
-              }}
-            >
-              Workspace
-            </div>
-
-            {[
-              { id: 'settings', label: 'Settings',           icon: <IconSettings /> },
-              { id: 'help',     label: 'Help & Documentation', icon: <IconHelp /> },
-            ].map((item) => (
-              <NavBtn
-                key={item.id}
-                item={item}
-                isActive={active === item.id}
-                onClick={() => onNav(item.id)}
-              />
-            ))}
-          </div>
         </nav>
 
         {/* ── User profile ─────────────────────────────────────────── */}

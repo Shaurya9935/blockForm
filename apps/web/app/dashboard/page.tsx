@@ -27,8 +27,13 @@ export default function DashboardPage({ onBack }: { onBack?: () => void }) {
     setActiveNav(id)
     if (id === 'forms') {
       router.push('/dashboard/forms')
+    } else if (id === 'templates') {
+      router.push('/dashboard/templates')
+    } else if (id === 'dashboard') {
+      router.push('/dashboard')
     }
   }
+
 
   const isUnauthorized = Boolean(
     (!userLoading && (userError || !user)) ||
