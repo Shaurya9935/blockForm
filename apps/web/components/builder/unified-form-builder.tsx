@@ -95,9 +95,19 @@ const THEME_OPTIONS: ThemeOptionCard[] = [
   },
 ]
 
-function UnifiedCanvas({ formId }: UnifiedFormBuilderProps) {
+function UnifiedCanvas({ formId, onClose }: UnifiedFormBuilderProps) {
   const router = useRouter()
   const reactFlowInstance = useReactFlow()
+
+  const handleBack = useCallback(() => {
+    if (onClose) {
+      onClose()
+    } else if (typeof window !== 'undefined' && window.history.length > 1) {
+      router.back()
+    } else {
+      router.push('/dashboard')
+    }
+  }, [onClose, router])
 
   // Mode state: 'workflow' (React Flow canvas) vs 'block-list' (Vertical cards list)
   const [viewMode, setViewMode] = useState<'workflow' | 'block-list'>('workflow')
@@ -121,6 +131,7 @@ function UnifiedCanvas({ formId }: UnifiedFormBuilderProps) {
   // Theme Step Modal State
   const [themeModalOpen, setThemeModalOpen] = useState(false)
   const [selectedTheme, setSelectedTheme] = useState<FormThemeChoice>('overworld')
+  const [selectedExperience, setSelectedExperience] = useState<'journey' | 'scroll'>('journey')
   const [targetFormId, setTargetFormId] = useState<string | null>(formId || null)
 
   // Sync Form Title & Theme
@@ -131,7 +142,48 @@ function UnifiedCanvas({ formId }: UnifiedFormBuilderProps) {
     if (form?.theme) {
       setSelectedTheme((form.theme as FormThemeChoice) || 'overworld')
     }
+    if ((form as any)?.formExperience) {
+      setSelectedExperience(((form as any).formExperience as 'journey' | 'scroll') || 'journey')
+    }
   }, [form])
+
+  // Helper to generate sequential edges with explicit handles for workflow graph
+  const generateSequentialEdges = useCallback((nodesList: Node[]): Edge[] => {
+    const fieldNodes = nodesList.filter((n) => n.type === 'fieldNode')
+    const newEdges: Edge[] = []
+    let prevId = 'start-node'
+
+    fieldNodes.forEach((fNode) => {
+      newEdges.push({
+        id: `edge-${prevId}-${fNode.id}`,
+        source: prevId,
+        target: fNode.id,
+        sourceHandle: prevId === 'start-node' ? 'start-out' : 'field-out',
+        targetHandle: 'field-in',
+        type: 'smoothstep',
+        animated: true,
+        style: { stroke: '#6abf3c', strokeWidth: 2 },
+        markerEnd: { type: MarkerType.ArrowClosed, color: '#6abf3c' },
+      })
+      prevId = fNode.id
+    })
+
+    if (nodesList.some((n) => n.id === 'end-node')) {
+      newEdges.push({
+        id: `edge-${prevId}-end-node`,
+        source: prevId,
+        target: 'end-node',
+        sourceHandle: prevId === 'start-node' ? 'start-out' : 'field-out',
+        targetHandle: 'end-in',
+        type: 'smoothstep',
+        animated: true,
+        style: { stroke: '#6abf3c', strokeWidth: 2 },
+        markerEnd: { type: MarkerType.ArrowClosed, color: '#6abf3c' },
+      })
+    }
+
+    return newEdges
+  }, [])
 
   // Select node handler
   const handleSelectNode = useCallback((id: string) => {
@@ -144,7 +196,7 @@ function UnifiedCanvas({ formId }: UnifiedFormBuilderProps) {
       setNodes((nds) => {
         const filtered = nds.filter((n) => n.id !== id)
         let step = 1
-        return filtered.map((n) => {
+        const updated = filtered.map((n) => {
           if (n.type === 'fieldNode') {
             const data = n.data as unknown as FormBlockData
             return {
@@ -154,11 +206,13 @@ function UnifiedCanvas({ formId }: UnifiedFormBuilderProps) {
           }
           return n
         })
+        setEdges(generateSequentialEdges(updated))
+        return updated as any
       })
       setSelectedNodeId((prev) => (prev === id ? null : prev))
       toast.success('Block removed')
     },
-    [setNodes]
+    [setNodes, setEdges, generateSequentialEdges]
   )
 
   // Move node up (left in horizontal layout)
@@ -186,16 +240,19 @@ function UnifiedCanvas({ formId }: UnifiedFormBuilderProps) {
         newNds[swapIdx2] = temp
 
         let step = 1
-        return newNds.map((n) => {
+        const updated = newNds.map((n) => {
           if (n.type === 'fieldNode') {
             const data = n.data as unknown as FormBlockData
             return { ...n, data: { ...data, index: step++ } }
           }
           return n
         })
+
+        setEdges(generateSequentialEdges(updated))
+        return updated as any
       })
     },
-    [setNodes]
+    [setNodes, setEdges, generateSequentialEdges]
   )
 
   // Move node down (right in horizontal layout)
@@ -223,16 +280,19 @@ function UnifiedCanvas({ formId }: UnifiedFormBuilderProps) {
         newNds[swapIdx2] = temp
 
         let step = 1
-        return newNds.map((n) => {
+        const updated = newNds.map((n) => {
           if (n.type === 'fieldNode') {
             const data = n.data as unknown as FormBlockData
             return { ...n, data: { ...data, index: step++ } }
           }
           return n
         })
+
+        setEdges(generateSequentialEdges(updated))
+        return updated as any
       })
     },
-    [setNodes]
+    [setNodes, setEdges, generateSequentialEdges]
   )
 
   // Reorder nodes via drag-and-drop
@@ -267,15 +327,17 @@ function UnifiedCanvas({ formId }: UnifiedFormBuilderProps) {
 
         // Move endNode to the end
         const endNode = nds.find((n) => n.id === 'end-node')
+        let result: any[] = reordered
         if (endNode) {
           const updatedEndNode = { ...endNode, position: { x: currentX, y: endNode.position.y } }
-          return [...reordered, updatedEndNode]
+          result = [...reordered, updatedEndNode]
         }
 
-        return reordered
+        setEdges(generateSequentialEdges(result))
+        return result as any
       })
     },
-    [setNodes]
+    [setNodes, setEdges, generateSequentialEdges]
   )
 
   // Automatic Horizontal Flow Layout
@@ -305,45 +367,12 @@ function UnifiedCanvas({ formId }: UnifiedFormBuilderProps) {
         return n
       })
 
-      // Re-connect linear edges between nodes
-      const sortedFieldIds = updated
-        .filter((n) => n.type === 'fieldNode')
-        .map((n) => n.id)
-
-      const newEdges: Edge[] = []
-      let prevId = 'start-node'
-
-      sortedFieldIds.forEach((fId) => {
-        newEdges.push({
-          id: `edge-${prevId}-${fId}`,
-          source: prevId,
-          target: fId,
-          type: 'smoothstep',
-          animated: true,
-          style: { stroke: '#6abf3c', strokeWidth: 2 },
-          markerEnd: { type: MarkerType.ArrowClosed, color: '#6abf3c' },
-        })
-        prevId = fId
-      })
-
-      if (updated.some((n) => n.id === 'end-node')) {
-        newEdges.push({
-          id: `edge-${prevId}-end-node`,
-          source: prevId,
-          target: 'end-node',
-          type: 'smoothstep',
-          animated: true,
-          style: { stroke: '#6abf3c', strokeWidth: 2 },
-          markerEnd: { type: MarkerType.ArrowClosed, color: '#6abf3c' },
-        })
-      }
-
-      setEdges(newEdges)
-      return updated
+      setEdges(generateSequentialEdges(updated))
+      return updated as any
     })
 
     toast.success('Auto-layout applied to horizontal flow')
-  }, [setNodes, setEdges])
+  }, [setNodes, setEdges, generateSequentialEdges])
 
   // Load existing form fields into nodes and edges
   useEffect(() => {
@@ -402,38 +431,8 @@ function UnifiedCanvas({ formId }: UnifiedFormBuilderProps) {
           },
         ]
 
-        const initialEdges: Edge[] = [
-          {
-            id: 'edge-start-1',
-            source: 'start-node',
-            target: 'node-default-1',
-            type: 'smoothstep',
-            animated: true,
-            style: { stroke: '#6abf3c', strokeWidth: 2 },
-            markerEnd: { type: MarkerType.ArrowClosed, color: '#6abf3c' },
-          },
-          {
-            id: 'edge-1-2',
-            source: 'node-default-1',
-            target: 'node-default-2',
-            type: 'smoothstep',
-            animated: true,
-            style: { stroke: '#6abf3c', strokeWidth: 2 },
-            markerEnd: { type: MarkerType.ArrowClosed, color: '#6abf3c' },
-          },
-          {
-            id: 'edge-2-end',
-            source: 'node-default-2',
-            target: 'end-node',
-            type: 'smoothstep',
-            animated: true,
-            style: { stroke: '#6abf3c', strokeWidth: 2 },
-            markerEnd: { type: MarkerType.ArrowClosed, color: '#6abf3c' },
-          },
-        ]
-
         setNodes(initialNodes)
-        setEdges(initialEdges)
+        setEdges(generateSequentialEdges(initialNodes))
       }
       return
     }
@@ -451,9 +450,6 @@ function UnifiedCanvas({ formId }: UnifiedFormBuilderProps) {
         data: { label: 'Form Start' },
       },
     ]
-
-    const loadedEdges: Edge[] = []
-    let previousNodeId = 'start-node'
 
     sortedFields.forEach((f, idx) => {
       const nodeId = `node-${f.id}`
@@ -486,17 +482,6 @@ function UnifiedCanvas({ formId }: UnifiedFormBuilderProps) {
         },
       })
 
-      loadedEdges.push({
-        id: `edge-${previousNodeId}-${nodeId}`,
-        source: previousNodeId,
-        target: nodeId,
-        type: 'smoothstep',
-        animated: true,
-        style: { stroke: '#6abf3c', strokeWidth: 2 },
-        markerEnd: { type: MarkerType.ArrowClosed, color: '#6abf3c' },
-      })
-
-      previousNodeId = nodeId
       currentX = posX + 380
     })
 
@@ -508,19 +493,9 @@ function UnifiedCanvas({ formId }: UnifiedFormBuilderProps) {
       data: { label: 'Form Submit' },
     })
 
-    loadedEdges.push({
-      id: `edge-${previousNodeId}-end-node`,
-      source: previousNodeId,
-      target: 'end-node',
-      type: 'smoothstep',
-      animated: true,
-      style: { stroke: '#6abf3c', strokeWidth: 2 },
-      markerEnd: { type: MarkerType.ArrowClosed, color: '#6abf3c' },
-    })
-
     setNodes(loadedNodes)
-    setEdges(loadedEdges)
-  }, [fields, formLoading, fieldsLoading, handleSelectNode, handleDeleteNode, handleMoveNodeUp, handleMoveNodeDown, setNodes, setEdges])
+    setEdges(generateSequentialEdges(loadedNodes))
+  }, [fields, formLoading, fieldsLoading, handleSelectNode, handleDeleteNode, handleMoveNodeUp, handleMoveNodeDown, setNodes, setEdges, generateSequentialEdges])
 
   // Handle flow connections
   const onConnect = useCallback(
@@ -595,13 +570,14 @@ function UnifiedCanvas({ formId }: UnifiedFormBuilderProps) {
           updated.push(newNode)
         }
 
-        return updated
+        setEdges(generateSequentialEdges(updated))
+        return updated as any
       })
 
       setSelectedNodeId(newNodeId)
       toast.success(`Added ${config?.label || blockType} block`)
     },
-    [setNodes, handleSelectNode, handleDeleteNode, handleMoveNodeUp, handleMoveNodeDown]
+    [setNodes, setEdges, handleSelectNode, handleDeleteNode, handleMoveNodeUp, handleMoveNodeDown, generateSequentialEdges]
   )
 
   const onDrop = useCallback(
@@ -758,12 +734,17 @@ function UnifiedCanvas({ formId }: UnifiedFormBuilderProps) {
 
     try {
       const dbTheme = selectedTheme
-
-      await updateFormAsync({
+      const updatePayload: any = {
         formId: targetFormId,
         theme: dbTheme as any,
-      })
+      }
 
+      // Only Overworld supports experience modes right now
+      if (selectedTheme === 'overworld') {
+        updatePayload.formExperience = selectedExperience
+      }
+
+      await updateFormAsync(updatePayload)
 
       toast.success(`Form theme set to ${selectedTheme.charAt(0).toUpperCase() + selectedTheme.slice(1)}!`)
       setThemeModalOpen(false)
@@ -772,6 +753,7 @@ function UnifiedCanvas({ formId }: UnifiedFormBuilderProps) {
       toast.error(err?.message || 'Failed to save form theme')
     }
   }
+
 
   return (
     <div
@@ -799,7 +781,7 @@ function UnifiedCanvas({ formId }: UnifiedFormBuilderProps) {
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
           <button
-            onClick={() => router.push(formId ? `/dashboard/forms?id=${formId}` : '/dashboard/forms')}
+            onClick={handleBack}
             style={{
               backgroundColor: '#161b22',
               color: '#8b9ab0',
@@ -1040,6 +1022,87 @@ function UnifiedCanvas({ formId }: UnifiedFormBuilderProps) {
                 )
               })}
             </div>
+
+            {/* ── Overworld Experience Selector ── */}
+            {selectedTheme === 'overworld' && (
+              <div className="mb-6 p-4 bg-[#0d1117] border border-[rgba(212,168,67,0.2)] rounded-xl">
+                <div className="mb-3">
+                  <div className="text-[10px] font-extrabold text-[rgba(212,168,67,0.8)] tracking-widest uppercase mb-0.5">
+                    ⛏ Form Experience
+                  </div>
+                  <div className="text-xs text-[#8b9ab0]">How should respondents experience this form?</div>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  {/* Journey option */}
+                  <button
+                    type="button"
+                    onClick={() => setSelectedExperience('journey')}
+                    className={`p-3.5 rounded-lg border text-left cursor-pointer transition-all ${
+                      selectedExperience === 'journey'
+                        ? 'border-[rgba(212,168,67,0.7)] bg-[rgba(212,168,67,0.08)] shadow-[0_0_16px_rgba(212,168,67,0.12)]'
+                        : 'border-[#21262d] bg-[#161b22] hover:border-[#384350]'
+                    }`}
+                    style={{ background: 'none' }}
+                  >
+                    <div className="flex items-center gap-2 mb-2">
+                      <span style={{ fontSize: 18 }}>🌿</span>
+                      <span className="text-sm font-bold" style={{ color: selectedExperience === 'journey' ? '#d4a843' : '#eceae4' }}>
+                        Journey
+                      </span>
+                      {selectedExperience === 'journey' && (
+                        <span className="ml-auto text-[10px] font-extrabold text-[#d4a843]">✓</span>
+                      )}
+                    </div>
+                    {/* Mini visual preview */}
+                    <div className="flex flex-col gap-1 mb-2 opacity-60">
+                      <div style={{ height: 6, borderRadius: 2, background: 'rgba(212,168,67,0.4)', width: '80%' }} />
+                      <div style={{ height: 14, borderRadius: 2, background: 'rgba(255,255,255,0.12)', width: '100%' }} />
+                      <div className="flex gap-1 mt-0.5">
+                        <div style={{ height: 8, borderRadius: 2, background: 'rgba(212,168,67,0.3)', flex: 1 }} />
+                        <div style={{ height: 8, borderRadius: 2, background: 'rgba(255,255,255,0.1)', flex: 2 }} />
+                      </div>
+                    </div>
+                    <p className="m-0 text-[11px] leading-relaxed" style={{ color: '#8b9ab0' }}>
+                      One question at a time. Guided, step-by-step path.
+                    </p>
+                  </button>
+
+                  {/* Scroll option */}
+                  <button
+                    type="button"
+                    onClick={() => setSelectedExperience('scroll')}
+                    className={`p-3.5 rounded-lg border text-left cursor-pointer transition-all ${
+                      selectedExperience === 'scroll'
+                        ? 'border-[rgba(212,168,67,0.7)] bg-[rgba(212,168,67,0.08)] shadow-[0_0_16px_rgba(212,168,67,0.12)]'
+                        : 'border-[#21262d] bg-[#161b22] hover:border-[#384350]'
+                    }`}
+                    style={{ background: 'none' }}
+                  >
+                    <div className="flex items-center gap-2 mb-2">
+                      <span style={{ fontSize: 18 }}>📜</span>
+                      <span className="text-sm font-bold" style={{ color: selectedExperience === 'scroll' ? '#d4a843' : '#eceae4' }}>
+                        Scroll
+                      </span>
+                      {selectedExperience === 'scroll' && (
+                        <span className="ml-auto text-[10px] font-extrabold text-[#d4a843]">✓</span>
+                      )}
+                    </div>
+                    {/* Mini visual preview */}
+                    <div className="flex flex-col gap-1 mb-2 opacity-60">
+                      {[1, 2, 3].map((n) => (
+                        <div key={n} className="flex flex-col gap-0.5">
+                          <div style={{ height: 4, borderRadius: 2, background: 'rgba(212,168,67,0.3)', width: `${70 - n * 10}%` }} />
+                          <div style={{ height: 8, borderRadius: 2, background: 'rgba(255,255,255,0.1)', width: '100%' }} />
+                        </div>
+                      ))}
+                    </div>
+                    <p className="m-0 text-[11px] leading-relaxed" style={{ color: '#8b9ab0' }}>
+                      All questions visible. Scroll and fill at your own pace.
+                    </p>
+                  </button>
+                </div>
+              </div>
+            )}
 
             {/* Modal Actions */}
             <div className="flex items-center justify-between pt-4 border-t border-[#21262d]">

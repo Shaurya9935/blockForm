@@ -20,6 +20,11 @@ export const formThemeEnum = pgEnum("form_theme", [
   "retro",
 ]);
 
+export const formExperienceEnum = pgEnum("form_experience", [
+  "journey",
+  "scroll",
+]);
+
 
 
 export const formsTable = pgTable('forms_table', {
@@ -33,6 +38,9 @@ export const formsTable = pgTable('forms_table', {
     theme: formThemeEnum("theme")
   .notNull()
   .default("overworld"),
+
+    formExperience: formExperienceEnum("form_experience")
+  .default("journey"),
 
     createdAt: timestamp("created_at").defaultNow(),
     updatedAt: timestamp("updated_at").$onUpdate(() => new Date()),

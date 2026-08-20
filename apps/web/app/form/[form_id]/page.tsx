@@ -173,6 +173,7 @@ export default function PublicFormSubmissionPage() {
         title={form.title}
         description={form.description || undefined}
         questions={mappedQuestions}
+        formExperience={((form as any).formExperience as 'journey' | 'scroll') || 'journey'}
         onSubmit={handleThemeSubmit}
       />
     )

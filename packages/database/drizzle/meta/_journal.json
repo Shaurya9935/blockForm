@@ -57,6 +57,13 @@
       "when": 1787077037318,
       "tag": "0007_lazy_ben_urich",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1787257539807,
+      "tag": "0008_young_maestro",
+      "breakpoints": true
     }
   ]
 }

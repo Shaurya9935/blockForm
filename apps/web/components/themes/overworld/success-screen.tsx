@@ -23,8 +23,9 @@ export function SuccessScreen({
     const ctx = canvas.getContext('2d')
     if (!ctx) return
 
-    canvas.width = window.innerWidth
-    canvas.height = window.innerHeight
+    const rect = canvas.parentElement?.getBoundingClientRect() || canvas.getBoundingClientRect()
+    canvas.width = rect.width || window.innerWidth
+    canvas.height = rect.height || window.innerHeight
 
     const particles: Array<{
       x: number

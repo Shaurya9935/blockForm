@@ -1,5 +1,7 @@
 export type Screen = 'landing' | 'form' | 'submitting' | 'success'
 
+export type FormExperience = 'journey' | 'scroll'
+
 export interface Question {
   id: number | string
   type: 'text' | 'email' | 'number' | 'dropdown' | 'checkbox'
@@ -69,6 +71,7 @@ export interface OverworldThemeProps {
   subtitle?: string
   description?: string
   questions: Question[]
+  formExperience?: FormExperience
   onSubmit?: (answers: Record<string | number, string | string[]>) => Promise<void> | void
   onComplete?: () => void
 }

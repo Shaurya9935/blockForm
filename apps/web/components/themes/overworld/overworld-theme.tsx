@@ -8,6 +8,7 @@ import { LandingCard } from './landing-card'
 import { FormQuestion } from './form-question'
 import { SubmittingScreen } from './submitting-screen'
 import { SuccessScreen } from './success-screen'
+import { ScrollLayout } from './scroll-layout'
 
 export const DEFAULT_ENV_THEMES: EnvTheme[] = [
   { name: 'Morning Overworld', skyStart: '#87ceeb', skyEnd: '#b8dff5', accent: '#f4a861', label: '🌅 Morning' },
@@ -27,23 +28,28 @@ export const DEFAULT_QUESTIONS: Question[] = [
   { id: 6, type: 'text', question: 'Any message for the organizing team?', placeholder: 'Totally optional — say hi!' },
 ]
 
-export function OverworldTheme({
+function JourneyLayout({
   title = 'COLLEGE FEST 2026',
   subtitle = '⛏ BLOCKFORM',
   description = 'Tell us a little about yourself before you join the event.',
-  questions = DEFAULT_QUESTIONS,
+  questions,
   onSubmit,
   onComplete,
-}: OverworldThemeProps) {
+}: {
+  title?: string
+  subtitle?: string
+  description?: string
+  questions: Question[]
+  onSubmit?: (answers: Record<string | number, string | string[]>) => Promise<void> | void
+  onComplete?: () => void
+}) {
   const [screen, setScreen] = useState<Screen>('landing')
   const [currentQ, setCurrentQ] = useState(0)
   const [answers, setAnswers] = useState<Record<number | string, string | string[]>>({})
   const [direction, setDirection] = useState<'forward' | 'back'>('forward')
 
-  const activeQuestions = questions.length > 0 ? questions : DEFAULT_QUESTIONS
   const envIndex = screen === 'form' ? Math.min(currentQ, DEFAULT_ENV_THEMES.length - 1) : 0
   const env = (DEFAULT_ENV_THEMES[envIndex] ?? DEFAULT_ENV_THEMES[0]) as EnvTheme
-
 
   const handleEnter = () => setScreen('form')
 
@@ -52,7 +58,7 @@ export function OverworldTheme({
   }, [])
 
   const handleNext = useCallback(async () => {
-    if (currentQ < activeQuestions.length - 1) {
+    if (currentQ < questions.length - 1) {
       setDirection('forward')
       setCurrentQ((q) => q + 1)
     } else {
@@ -69,7 +75,7 @@ export function OverworldTheme({
         if (onComplete) onComplete()
       }, 2200)
     }
-  }, [currentQ, activeQuestions.length, onSubmit, answers, onComplete])
+  }, [currentQ, questions.length, onSubmit, answers, onComplete])
 
   const handleBack = useCallback(() => {
     if (currentQ > 0) {
@@ -99,7 +105,7 @@ export function OverworldTheme({
     return () => window.removeEventListener('keydown', handler)
   }, [screen])
 
-  const currentQuestion = activeQuestions[currentQ]
+  const currentQuestion = questions[currentQ]
 
   return (
     <div className="overworld-theme-root">
@@ -137,7 +143,7 @@ export function OverworldTheme({
             title={title}
             subtitle={subtitle}
             description={description}
-            totalQuestions={activeQuestions.length}
+            totalQuestions={questions.length}
             onEnter={handleEnter}
           />
         )}
@@ -146,7 +152,7 @@ export function OverworldTheme({
           <FormQuestion
             question={currentQuestion}
             questionIndex={currentQ}
-            totalQuestions={activeQuestions.length}
+            totalQuestions={questions.length}
             value={answers[currentQuestion.id]}
             onChange={handleAnswer}
             onNext={handleNext}
@@ -163,3 +169,40 @@ export function OverworldTheme({
     </div>
   )
 }
+
+export function OverworldTheme({
+  title = 'COLLEGE FEST 2026',
+  subtitle = '⛏ BLOCKFORM',
+  description = 'Tell us a little about yourself before you join the event.',
+  questions = DEFAULT_QUESTIONS,
+  formExperience = 'journey',
+  onSubmit,
+  onComplete,
+}: OverworldThemeProps) {
+  const activeQuestions = questions.length > 0 ? questions : DEFAULT_QUESTIONS
+
+  if (formExperience === 'scroll') {
+    return (
+      <ScrollLayout
+        title={title}
+        subtitle={subtitle}
+        description={description}
+        questions={activeQuestions}
+        onSubmit={onSubmit}
+        onComplete={onComplete}
+      />
+    )
+  }
+
+  return (
+    <JourneyLayout
+      title={title}
+      subtitle={subtitle}
+      description={description}
+      questions={activeQuestions}
+      onSubmit={onSubmit}
+      onComplete={onComplete}
+    />
+  )
+}
+

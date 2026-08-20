@@ -11,6 +11,9 @@ export const formThemeZod = z.enum([
   "retro",
 ])
 
+export const formExperienceZod = z.enum(["journey", "scroll"])
+export type FormExperienceType = z.infer<typeof formExperienceZod>
+
 
 
 export type FormThemeType = z.infer<typeof formThemeZod>
@@ -29,6 +32,7 @@ export const updateFormInput = z.object({
   title: z.string().min(1).max(50).optional(),
   description: z.string().max(300).optional().nullable(),
   theme: formThemeZod.optional(),
+  formExperience: formExperienceZod.optional(),
 })
 
 export type UpdateFormInputType = z.infer<typeof updateFormInput>

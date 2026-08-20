@@ -94,6 +94,8 @@ function FormPreviewContent() {
   const formId = searchParams.get('id') || ''
 
   const [selectedTheme, setSelectedTheme] = useState<ThemeId>('aura')
+  const [selectedExperience, setSelectedExperience] = useState<'journey' | 'scroll'>('journey')
+  const [isSavingTheme, setIsSavingTheme] = useState(false)
 
   // Auth & Form Hooks
   const { user, isLoading: userLoading, isError: userError } = useGetLoggedInUserInfo()
@@ -104,22 +106,29 @@ function FormPreviewContent() {
     if (form?.theme) {
       setSelectedTheme((form.theme as ThemeId) || 'aura')
     }
-  }, [form?.theme])
+    if ((form as any)?.formExperience) {
+      setSelectedExperience(((form as any).formExperience as 'journey' | 'scroll') || 'journey')
+    }
+  }, [form?.theme, (form as any)?.formExperience])
 
-  const handleSelectTheme = async (themeId: ThemeId) => {
-    setSelectedTheme(themeId)
-    if (formId) {
-      try {
-        const dbTheme = themeId
-        await updateFormAsync({
-          formId,
-          theme: dbTheme as any,
-        })
-
-        toast.success(`Theme updated to ${themeId.charAt(0).toUpperCase() + themeId.slice(1)}`)
-      } catch (err: any) {
-        toast.error(err?.message || 'Failed to save theme setting')
+  const handleSaveTheme = async () => {
+    if (!formId) return
+    try {
+      setIsSavingTheme(true)
+      const payload: any = {
+        formId,
+        theme: selectedTheme as any,
       }
+      // Persist experience mode for Overworld
+      if (selectedTheme === 'overworld') {
+        payload.formExperience = selectedExperience
+      }
+      await updateFormAsync(payload)
+      toast.success(`Theme updated to ${selectedTheme.charAt(0).toUpperCase() + selectedTheme.slice(1)}`)
+    } catch (err: any) {
+      toast.error(err?.message || 'Failed to save theme setting')
+    } finally {
+      setIsSavingTheme(false)
     }
   }
 
@@ -139,7 +148,7 @@ function FormPreviewContent() {
   return (
     <>
       <DashStyles />
-      <div className="min-h-screen bg-[#0a0e14] font-['Outfit'] flex flex-col relative overflow-hidden">
+      <div className="h-screen bg-[#0a0e14] font-['Outfit'] flex flex-col relative overflow-hidden">
         {/* Session Expired / Unauthorized Modal */}
         <SessionExpiredModal isOpen={isUnauthorized} />
 
@@ -184,9 +193,9 @@ function FormPreviewContent() {
         </div>
 
         {/* Main Work Area with Right Theme Sidebar */}
-        <div className="flex-1 flex relative overflow-hidden">
-          {/* Main Preview Screen Canvas */}
-          <div className="flex-1 relative overflow-auto">
+        <div className="flex-1 flex relative overflow-hidden min-h-0">
+          {/* Main Preview Screen Canvas — Main Scrollable Viewport */}
+          <div className="flex-1 relative overflow-auto h-full">
             {formLoading ? (
               <div className="h-full flex items-center justify-center p-12 text-[#6e7a8a]">
                 Loading live form preview...
@@ -239,6 +248,7 @@ function FormPreviewContent() {
                   title={form.title}
                   description={form.description || undefined}
                   questions={mappedQuestions}
+                  formExperience={selectedExperience}
                   onSubmit={(answers) => {
                     toast.success('Overworld theme submission simulated!')
                     console.log('Submitted answers:', answers)
@@ -261,9 +271,9 @@ function FormPreviewContent() {
 
           </div>
 
-          {/* Right Themes Sidebar */}
-          <div className="w-[300px] shrink-0 bg-[#0d1117] border-l border-[#21262d] p-5 flex flex-col gap-4 z-30 shadow-[-10px_0_30px_rgba(0,0,0,0.4)] overflow-y-auto">
-            <div>
+          {/* Right Themes Sidebar — Fixed Height with Pinned Save Button */}
+          <div className="w-[300px] shrink-0 bg-[#0d1117] border-l border-[#21262d] p-5 flex flex-col gap-4 z-30 shadow-[-10px_0_30px_rgba(0,0,0,0.4)] h-full overflow-hidden">
+            <div className="shrink-0">
               <h3 className="m-0 text-[14px] font-extrabold text-[#eceae4] uppercase tracking-wider flex items-center gap-2">
                 <span>🎨</span> Form Themes
               </h3>
@@ -272,14 +282,14 @@ function FormPreviewContent() {
               </p>
             </div>
 
-            <div className="flex flex-col gap-3 mt-1">
+            <div className="flex-1 overflow-y-auto pr-1 flex flex-col gap-3 mt-1 min-h-0">
               {THEMES.map((theme) => {
                 const isActive = selectedTheme === theme.id
 
                 return (
                   <div
                     key={theme.id}
-                    onClick={() => handleSelectTheme(theme.id)}
+                    onClick={() => setSelectedTheme(theme.id)}
                     className={`p-4 rounded-xl border cursor-pointer transition-all ${
                       isActive
                         ? 'bg-[#161b22] border-[#6abf3c] shadow-[0_4px_20px_rgba(106,191,60,0.15)] ring-1 ring-[#6abf3c]'
@@ -303,6 +313,77 @@ function FormPreviewContent() {
                   </div>
                 )
               })}
+            </div>
+
+            {/* ── Overworld Experience Selector ── */}
+            {selectedTheme === 'overworld' && (
+              <div className="shrink-0 p-3 bg-[#0a0e14] border border-[rgba(212,168,67,0.2)] rounded-xl flex flex-col gap-2">
+                <div>
+                  <div className="text-[9px] font-extrabold text-[rgba(212,168,67,0.8)] tracking-widest uppercase mb-0.5">
+                    ⛏ Form Experience
+                  </div>
+                  <div className="text-[11px] text-[#6e7a8a]">Journey or Scroll layout?</div>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setSelectedExperience('journey')}
+                    className={`p-2.5 rounded-lg border text-left cursor-pointer transition-all ${
+                      selectedExperience === 'journey'
+                        ? 'border-[rgba(212,168,67,0.6)] bg-[rgba(212,168,67,0.08)]'
+                        : 'border-[#21262d] bg-[#161b22] hover:border-[#384350]'
+                    }`}
+                    style={{ background: 'none' }}
+                  >
+                    <div className="flex items-center gap-1.5 mb-1">
+                      <span style={{ fontSize: 14 }}>🌿</span>
+                      <span className="text-[12px] font-bold" style={{ color: selectedExperience === 'journey' ? '#d4a843' : '#eceae4' }}>Journey</span>
+                      {selectedExperience === 'journey' && <span className="ml-auto text-[9px] font-extrabold text-[#d4a843]">✓</span>}
+                    </div>
+                    <p className="m-0 text-[10px] leading-relaxed" style={{ color: '#6e7a8a' }}>One at a time</p>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedExperience('scroll')}
+                    className={`p-2.5 rounded-lg border text-left cursor-pointer transition-all ${
+                      selectedExperience === 'scroll'
+                        ? 'border-[rgba(212,168,67,0.6)] bg-[rgba(212,168,67,0.08)]'
+                        : 'border-[#21262d] bg-[#161b22] hover:border-[#384350]'
+                    }`}
+                    style={{ background: 'none' }}
+                  >
+                    <div className="flex items-center gap-1.5 mb-1">
+                      <span style={{ fontSize: 14 }}>📜</span>
+                      <span className="text-[12px] font-bold" style={{ color: selectedExperience === 'scroll' ? '#d4a843' : '#eceae4' }}>Scroll</span>
+                      {selectedExperience === 'scroll' && <span className="ml-auto text-[9px] font-extrabold text-[#d4a843]">✓</span>}
+                    </div>
+                    <p className="m-0 text-[10px] leading-relaxed" style={{ color: '#6e7a8a' }}>All at once</p>
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Pinned Save Theme Button */}
+            <div className="shrink-0 pt-3 border-t border-[#21262d]">
+              <button
+                onClick={handleSaveTheme}
+                disabled={isSavingTheme || (
+                  form?.theme === selectedTheme &&
+                  (selectedTheme !== 'overworld' || ((form as any)?.formExperience ?? 'journey') === selectedExperience)
+                )}
+                className="w-full bg-[#6abf3c] text-[#0d1117] font-extrabold border-none rounded-xl py-3 px-4 text-[13px] font-['Outfit'] cursor-pointer shadow-[0_4px_16px_rgba(106,191,60,0.25)] hover:bg-[#7dd44a] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              >
+                {isSavingTheme ? (
+                  'Saving...'
+                ) : (
+                  form?.theme === selectedTheme &&
+                  (selectedTheme !== 'overworld' || ((form as any)?.formExperience ?? 'journey') === selectedExperience)
+                ) ? (
+                  '✓ Settings Applied'
+                ) : (
+                  'Save & Apply 💾'
+                )}
+              </button>
             </div>
           </div>
         </div>

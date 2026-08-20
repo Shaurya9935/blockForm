@@ -11,6 +11,8 @@ export const formThemeEnumZod = z.enum([
   "retro",
 ]);
 
+export const formExperienceEnumZod = z.enum(["journey", "scroll"]);
+
 
 
 export const createFormInputModel = z.object({
@@ -28,6 +30,7 @@ export const updateFormInputModel = z.object({
   title: z.string().min(1).max(55).optional(),
   description: z.string().max(300).optional().nullable(),
   theme: formThemeEnumZod.optional(),
+  formExperience: formExperienceEnumZod.optional(),
 })
 
 export const updateFormOutputModel = z.object({
@@ -35,6 +38,7 @@ export const updateFormOutputModel = z.object({
   title: z.string(),
   description: z.string().nullable().optional(),
   theme: formThemeEnumZod.nullable().optional(),
+  formExperience: formExperienceEnumZod.nullable().optional(),
 })
 
 export const listMyFormsInputModel = z.object({
@@ -47,6 +51,7 @@ export const listMyFormsOutputModel = z.array(
     title: z.string().describe('title of the form'),
     description: z.string().nullable().optional().describe('description of the form'),
     theme: formThemeEnumZod.nullable().optional().describe('Theme of the form'),
+    formExperience: formExperienceEnumZod.nullable().optional().describe('Form experience layout'),
     createdAt: z.date().optional().nullable().describe('Creation timestamp'),
     updatedAt: z.date().optional().nullable().describe('Last Updated timestamp'),
   })
@@ -92,6 +97,7 @@ export const getFormOutputModel = z.object({
   title: z.string(),
   description: z.string().nullable().optional(),
   theme: formThemeEnumZod.nullable().optional(),
+  formExperience: formExperienceEnumZod.nullable().optional(),
   createdAt: z.date().nullable(),
   updatedAt: z.date().nullable(),
   fields: z.array(formFieldObject),

@@ -37,12 +37,13 @@ class FormService {
   }
 
   public async updateForm(payload: UpdateFormInputType) {
-    const { formId, title, description, theme } = await updateFormInput.parseAsync(payload);
+    const { formId, title, description, theme, formExperience } = await updateFormInput.parseAsync(payload);
 
     const updateValues: Record<string, any> = {}
     if (title !== undefined) updateValues.title = title
     if (description !== undefined) updateValues.description = description
     if (theme !== undefined) updateValues.theme = theme
+    if (formExperience !== undefined) updateValues.formExperience = formExperience
 
     if (Object.keys(updateValues).length === 0) {
       throw new Error('No values provided for update')
@@ -57,6 +58,7 @@ class FormService {
         title: formsTable.title,
         description: formsTable.description,
         theme: formsTable.theme,
+        formExperience: formsTable.formExperience,
       })
 
     if (!updated || updated.length === 0) {
@@ -75,6 +77,7 @@ class FormService {
         title: formsTable.title,
         description: formsTable.description,
         theme: formsTable.theme,
+        formExperience: formsTable.formExperience,
         createdAt: formsTable.createdAt,
         updatedAt: formsTable.updatedAt,
       })
@@ -93,6 +96,7 @@ class FormService {
         title: formsTable.title,
         description: formsTable.description,
         theme: formsTable.theme,
+        formExperience: formsTable.formExperience,
         createdAt: formsTable.createdAt,
         updatedAt: formsTable.updatedAt,
         fieldId: formFieldsTable.id,
@@ -139,6 +143,7 @@ class FormService {
       title: firstRow.title,
       description: firstRow.description ?? null,
       theme: firstRow.theme ?? 'overworld',
+      formExperience: firstRow.formExperience ?? 'journey',
       createdAt: firstRow.createdAt,
       updatedAt: firstRow.updatedAt,
       fields,

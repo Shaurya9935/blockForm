@@ -24,7 +24,7 @@ export function LandingCard({
           border: '1.5px solid rgba(212,168,67,0.4)',
           padding: '48px 56px',
           maxWidth: 480,
-          width: '90vw',
+          width: '90%',
           textAlign: 'center',
           clipPath: 'polygon(6px 0%, 100% 0%, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0% 100%, 0% 6px)',
           position: 'relative',

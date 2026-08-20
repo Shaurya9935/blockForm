@@ -28,11 +28,17 @@ export function BlockWorld({ envIndex, showFullScene }: BlockWorldProps) {
     if (!ctx) return
 
     const resize = () => {
-      canvas.width = window.innerWidth
-      canvas.height = window.innerHeight
+      const rect = canvas.parentElement?.getBoundingClientRect() || canvas.getBoundingClientRect()
+      canvas.width = rect.width || window.innerWidth
+      canvas.height = rect.height || window.innerHeight
     }
     resize()
     window.addEventListener('resize', resize)
+
+    const observer = new ResizeObserver(resize)
+    if (canvas.parentElement) {
+      observer.observe(canvas.parentElement)
+    }
 
     const drawBlock = (
       x: number,
@@ -226,6 +232,7 @@ export function BlockWorld({ envIndex, showFullScene }: BlockWorldProps) {
     return () => {
       cancelAnimationFrame(animRef.current)
       window.removeEventListener('resize', resize)
+      observer.disconnect()
     }
   }, [envIndex, showFullScene, pal])
 
