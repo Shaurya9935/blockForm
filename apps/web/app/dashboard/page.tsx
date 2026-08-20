@@ -47,8 +47,9 @@ export default function DashboardPage({ onBack }: { onBack?: () => void }) {
         error?.message?.toLowerCase().includes('login')))
   )
 
-  const displayForms = forms || []
-  const totalFormCount = displayForms.length
+  const allForms = forms || []
+  const totalFormCount = allForms.length
+  const recentForms = allForms.slice(0, 4)
 
   return (
     <>
@@ -78,26 +79,30 @@ export default function DashboardPage({ onBack }: { onBack?: () => void }) {
               <WelcomeCard onCreateForm={handleCreateForm} />
             </section>
 
-            {/* My Forms */}
+            {/* My Forms (Recent 4) */}
             <section className="mb-8">
               <div className="flex items-center justify-between mb-4 flex-wrap gap-2.5">
                 <div>
                   <h2 className="m-0 text-[18px] font-extrabold text-[#eceae4] tracking-[-0.3px]">
-                    My Forms
+                    Recent Forms
                   </h2>
                   <div className="text-[12px] text-[#4e5a6a] mt-0.5">
                     {isLoading
                       ? 'Loading forms...'
-                      : `${totalFormCount} form${totalFormCount === 1 ? '' : 's'} in your workspace`}
+                      : totalFormCount > 4
+                        ? `Showing recent 4 of ${totalFormCount} forms`
+                        : `${totalFormCount} form${totalFormCount === 1 ? '' : 's'} in workspace`}
                   </div>
                 </div>
                 <div className="flex gap-2 items-center">
-                  <button
-                    onClick={() => router.push('/dashboard/forms')}
-                    className="bg-transparent border-none text-[#6abf3c] text-[13px] font-semibold font-['Outfit'] cursor-pointer p-0 hover:underline"
-                  >
-                    View all →
-                  </button>
+                  {totalFormCount > 0 && (
+                    <button
+                      onClick={() => router.push('/dashboard/forms')}
+                      className="bg-transparent border-none text-[#6abf3c] text-[13px] font-semibold font-['Outfit'] cursor-pointer p-0 hover:underline mr-1"
+                    >
+                      View all ({totalFormCount}) →
+                    </button>
+                  )}
                   <button
                     onClick={handleCreateForm}
                     className="flex items-center gap-1.5 bg-[#6abf3c] text-[#0d1117] border-none rounded-[7px] px-4 py-2 text-[13px] font-bold font-['Outfit'] cursor-pointer transition-all shadow-[0_2px_12px_rgba(106,191,60,0.2)] hover:bg-[#7dd44a] hover:-translate-y-0.5"
@@ -121,14 +126,26 @@ export default function DashboardPage({ onBack }: { onBack?: () => void }) {
                 <div className="p-6 bg-[#161b22] border border-[#2d3741] rounded-[10px] text-[#f87171] text-[14px]">
                   Failed to load forms: {error?.message || 'Unknown error'}
                 </div>
-              ) : displayForms.length === 0 ? (
+              ) : allForms.length === 0 ? (
                 <EmptyForms onCreateForm={handleCreateForm} />
               ) : (
-                <div className="forms-grid grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-[14px]">
-                  {displayForms.map((f, idx) => (
-                    <FormCard key={f.id} form={f} index={idx} />
-                  ))}
-                </div>
+                <>
+                  <div className="forms-grid grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-[14px]">
+                    {recentForms.map((f, idx) => (
+                      <FormCard key={f.id} form={f} index={idx} />
+                    ))}
+                  </div>
+                  {totalFormCount > 4 && (
+                    <div className="mt-3 text-right">
+                      <button
+                        onClick={() => router.push('/dashboard/forms')}
+                        className="text-[12px] text-[#8b9ab0] hover:text-[#6abf3c] transition-colors bg-transparent border-none cursor-pointer font-['Outfit']"
+                      >
+                        View all →
+                      </button>
+                    </div>
+                  )}
+                </>
               )}
             </section>
 
