@@ -1,28 +1,21 @@
-# Turborepo starter
+# BlockForm — Build forms, block by block
 
-This Turborepo starter is maintained by the Turborepo core team.
-
-## Using this example
-
-Run the following command:
-
-```sh
-npx create-turbo@latest
-```
+BlockForm is a modern, modular form builder platform. Create interactive forms, customize themes, publish instantly, and analyze response data seamlessly.
 
 ## What's inside?
 
-This Turborepo includes the following packages/apps:
+This Turborepo monorepo includes the following packages and applications:
 
 ### Apps and Packages
 
-- `docs`: a [Next.js](https://nextjs.org/) app
-- `web`: another [Next.js](https://nextjs.org/) app
-- `@repo/ui`: a stub React component library shared by both `web` and `docs` applications
-- `@repo/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
-- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
-
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
+- `web`: Next.js 16 frontend application ([`apps/web`](file:///Users/shauryagupta/Dev/Projects/blockForm/apps/web))
+- `api`: Express & tRPC API server ([`apps/api`](file:///Users/shauryagupta/Dev/Projects/blockForm/apps/api))
+- `@repo/database`: Drizzle ORM database schema and migrations ([`packages/database`](file:///Users/shauryagupta/Dev/Projects/blockForm/packages/database))
+- `@repo/trpc`: Shared tRPC routers and procedure definitions ([`packages/trpc`](file:///Users/shauryagupta/Dev/Projects/blockForm/packages/trpc))
+- `@repo/logger`: Logger utility package ([`packages/logger`](file:///Users/shauryagupta/Dev/Projects/blockForm/packages/logger))
+- `@repo/services`: Shared business logic & services ([`packages/services`](file:///Users/shauryagupta/Dev/Projects/blockForm/packages/services))
+- `@repo/eslint-config`: Shared ESLint configurations
+- `@repo/typescript-config`: Shared TypeScript configurations
 
 ### Utilities
 

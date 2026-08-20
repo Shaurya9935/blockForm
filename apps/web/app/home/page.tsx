@@ -9,7 +9,7 @@ import { Footer } from "~/components/landing/footer";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "BlockForm — Build forms, block by block",
+  title: "Build forms, block by block",
   description:
     "Create beautiful forms, share them anywhere, and turn every response into something you can build on.",
 };

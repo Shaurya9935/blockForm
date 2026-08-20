@@ -13,7 +13,7 @@ import { env } from "./env";
 export const app = express();
 const apiBaseUrl = process.env.BASE_URL || `http://localhost:${env.PORT || 8000}`;
 const openApiDocument = generateOpenApiDocument(serverRouter, {
-  title: "Streamyst OpenAPI",
+  title: "BlockForm OpenAPI",
   version: "1.0.0",
   baseUrl: apiBaseUrl.concat("/api"),
 });
@@ -30,11 +30,11 @@ const openApiDocument = generateOpenApiDocument(serverRouter, {
 app.use(express.json());
 
 app.get("/", (req, res) => {
-  return res.json({ message: "Streamyst is up and running..." });
+  return res.json({ message: "BlockForm API is up and running..." });
 });
 
 app.get("/health", (req, res) => {
-  return res.json({ message: "Streamyst server is healthy", healthy: true });
+  return res.json({ message: "BlockForm API server is healthy", healthy: true });
 });
 
 logger.debug(`openapi.json: ${apiBaseUrl}/openapi.json`);

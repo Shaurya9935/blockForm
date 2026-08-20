@@ -1,6 +1,7 @@
 {
   "name": "web",
   "version": "0.1.0",
+  "description": "BlockForm Next.js web application",
   "type": "module",
   "private": true,
   "scripts": {

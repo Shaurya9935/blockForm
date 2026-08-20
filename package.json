@@ -1,5 +1,6 @@
 {
-  "name": "trpc-monorepo",
+  "name": "blockform-monorepo",
+  "description": "BlockForm monorepo - Build forms, block by block",
   "private": true,
   "scripts": {
     "build": "dotenv -- turbo build",
