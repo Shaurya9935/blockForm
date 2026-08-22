@@ -7,7 +7,7 @@ import { BgDecor } from './bg-decor'
 
 export function SuccessScreen({
   title = "YOU'RE IN.",
-  subtitle = 'See you at AURA 2026.',
+  subtitle = 'Your registration has been confirmed.',
   formData,
   passId,
   onReset,
@@ -22,7 +22,7 @@ export function SuccessScreen({
   }, [])
 
   const handleShare = () => {
-    const text = `I'm attending AURA 2026! 🎉 ${passId} · CSJMU Campus, 15-17 Feb`
+    const text = `I got my pass! 🎉 Pass ID: ${passId} · Verified Access`
     if (navigator.share) {
       navigator.share({ text })
     } else if (navigator.clipboard) {
@@ -134,3 +134,4 @@ export function SuccessScreen({
     </div>
   )
 }
+

@@ -1,18 +1,8 @@
 export type Stage = 'intro' | 'form' | 'success'
 
-export type Dept = 'CSE' | 'ECE' | 'ME' | 'AI' | 'CIVIL' | 'MBA' | string
-export type YearCode = '1ST' | '2ND' | '3RD' | '4TH' | string
-export type Interest =
-  | 'MUSIC'
-  | 'DANCE'
-  | 'GAMING'
-  | 'CODING'
-  | 'ESPORTS'
-  | 'DESIGN'
-  | 'SPORTS'
-  | 'WORKSHOPS'
-  | 'PHOTOGRAPHY'
-  | string
+export type Dept = string
+export type YearCode = string
+export type Interest = string
 
 export type FieldType = 'text' | 'email' | 'number' | 'dropdown' | 'checkbox' | 'dept' | 'year'
 
@@ -29,15 +19,18 @@ export interface Question {
 export interface FormData {
   name: string
   email: string
-  dept: Dept
-  year: YearCode
-  interests: Interest[]
+  dept?: Dept
+  year?: YearCode
+  interests?: Interest[]
   [key: string]: any
 }
 
 export type AnswerMap = Record<number | string, string | string[]>
 
 export interface FestivalPassProps {
+  title?: string
+  subtitle?: string
+  footerNote?: string
   data: FormData
   passId: string
   confirmed?: boolean
@@ -66,10 +59,12 @@ export interface IntroScreenProps {
   title?: string
   tagline?: string
   dateSticker?: string
+  footerNote?: string
   onEnter: () => void
 }
 
 export interface FormQuestionProps {
+  title?: string
   question: Question
   questionIndex: number
   totalQuestions: number
@@ -95,3 +90,4 @@ export interface SuccessScreenProps {
   passId: string
   onReset?: () => void
 }
+

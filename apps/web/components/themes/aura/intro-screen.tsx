@@ -5,10 +5,11 @@ import type { IntroScreenProps } from './types'
 import { BgDecor } from './bg-decor'
 
 export function IntroScreen({
-  yearBadge = 'College Fest 2026',
+  yearBadge = 'OFFICIAL EVENT PASS',
   title = 'AURA',
-  tagline = 'Your Campus. Your People. Your Moment.',
-  dateSticker = '15–17 FEB · CSJMU CAMPUS',
+  tagline = 'Your Event. Your Pass. Your Moment.',
+  dateSticker = 'PASS REQUIRED · 2026',
+  footerNote = 'OFFICIAL ACCESS PASS · VERIFIED',
   onEnter,
 }: IntroScreenProps) {
   const [isMobile, setIsMobile] = useState(false)
@@ -72,7 +73,7 @@ export function IntroScreen({
         }}
       />
 
-      {/* Sticker: date */}
+      {/* Sticker: date / access badge */}
       <div
         className="anim-fade-up delay-1 font-anton-aura"
         style={{
@@ -104,7 +105,7 @@ export function IntroScreen({
           zIndex: 1,
         }}
       >
-        {/* Year badge */}
+        {/* Year / Event badge */}
         <div
           className="anim-fade-up"
           style={{
@@ -188,6 +189,7 @@ export function IntroScreen({
         {/* CTA */}
         <div className="anim-fade-up delay-3">
           <button
+            type="button"
             className="cta-btn"
             onClick={onEnter}
             style={{ fontSize: isMobile ? 16 : 18 }}
@@ -215,12 +217,13 @@ export function IntroScreen({
         }}
       >
         <div className="font-mono-aura" style={{ fontSize: 10, letterSpacing: 2, color: 'rgba(245,240,232,0.25)' }}>
-          BLOCKFORM × AURA
+          BLOCKFORM × {title}
         </div>
         <div style={{ fontSize: 10, color: 'rgba(245,240,232,0.2)', letterSpacing: 1 }}>
-          CSJMU CAMPUS · KANPUR
+          {footerNote}
         </div>
       </div>
     </div>
   )
 }
+

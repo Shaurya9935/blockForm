@@ -20,38 +20,40 @@ export const DEFAULT_AURA_QUESTIONS: Question[] = [
     id: 2,
     type: 'email',
     question: 'Where should we send your pass?',
-    description: 'Almost there.',
+    description: 'Digital pass delivery.',
     placeholder: 'your@email.com',
     required: true,
   },
   {
     id: 3,
-    type: 'dept',
-    question: 'Where do you belong?',
-    description: 'Tell us about yourself.',
+    type: 'dropdown',
+    question: 'Select your category or domain',
+    description: 'Tell us about your background.',
+    options: ['ENGINEERING', 'DESIGN', 'PRODUCT', 'AI & DATA', 'BUSINESS', 'OTHER'],
     required: true,
   },
   {
     id: 4,
-    type: 'year',
-    question: "What's your current chapter?",
-    description: 'Your journey so far.',
+    type: 'dropdown',
+    question: "What's your pass tier?",
+    description: 'Access category.',
+    options: ['GENERAL PASS', 'VIP ACCESS', 'CREATOR', 'STUDENT PASS'],
     required: true,
   },
   {
     id: 5,
     type: 'checkbox',
-    question: 'What are you here for?',
-    description: 'Your festival identity.',
-    options: ['MUSIC', 'DANCE', 'GAMING', 'CODING', 'ESPORTS', 'DESIGN', 'SPORTS', 'WORKSHOPS', 'PHOTOGRAPHY'],
+    question: 'What are you interested in?',
+    description: 'Your event tracks & topics.',
+    options: ['KEYNOTES', 'WORKSHOPS', 'HACKATHON', 'NETWORKING', 'GAMING', 'DESIGN', 'AI & TECH', 'MUSIC'],
     required: true,
   },
 ]
 
 export function AuraTheme({
   title = 'AURA',
-  subtitle = 'College Fest 2026',
-  description = 'Your Campus. Your People. Your Moment.',
+  subtitle = 'EVENT PASS 2026',
+  description = 'Your Event. Your Pass. Your Moment.',
   questions = DEFAULT_AURA_QUESTIONS,
   onSubmit,
   onComplete,
@@ -86,10 +88,13 @@ export function AuraTheme({
 
   const getAnswer = useCallback((): string | string[] => {
     if (!question) return ''
+    if (formData[question.id] !== undefined) return formData[question.id]
     if (question.type === 'checkbox') return formData.interests || []
     if (question.type === 'dept') return formData.dept || ''
     if (question.type === 'year') return formData.year || ''
-    return (formData[question.id] as string) || (formData[question.question] as string) || (currentQ === 0 ? formData.name : currentQ === 1 ? formData.email : '')
+    if (currentQ === 0) return formData.name || ''
+    if (currentQ === 1) return formData.email || ''
+    return ''
   }, [formData, question, currentQ])
 
   const setAnswer = useCallback((val: string | string[]) => {
@@ -97,19 +102,23 @@ export function AuraTheme({
     setError('')
     if (question.type === 'checkbox') {
       const arr = Array.isArray(val) ? val : [val]
-      setFormData((prev) => ({ ...prev, interests: arr }))
+      setFormData((prev) => ({ ...prev, interests: arr, [question.id]: arr }))
     } else if (question.type === 'dept') {
-      setFormData((prev) => ({ ...prev, dept: val as string }))
+      setFormData((prev) => ({ ...prev, dept: val as string, [question.id]: val as string }))
     } else if (question.type === 'year') {
-      setFormData((prev) => ({ ...prev, year: val as string }))
-    } else if (currentQ === 0 || question.type === 'text') {
+      setFormData((prev) => ({ ...prev, year: val as string, [question.id]: val as string }))
+    } else if (currentQ === 0) {
       setFormData((prev) => ({ ...prev, name: val as string, [question.id]: val as string }))
-    } else if (currentQ === 1 || question.type === 'email') {
+    } else if (currentQ === 1) {
       setFormData((prev) => ({ ...prev, email: val as string, [question.id]: val as string }))
+    } else if (currentQ === 2 && !formData.dept && typeof val === 'string') {
+      setFormData((prev) => ({ ...prev, dept: val, [question.id]: val }))
+    } else if (currentQ === 3 && !formData.year && typeof val === 'string') {
+      setFormData((prev) => ({ ...prev, year: val, [question.id]: val }))
     } else {
-      setFormData((prev) => ({ ...prev, [question.id]: val as string }))
+      setFormData((prev) => ({ ...prev, [question.id]: val }))
     }
-  }, [question, currentQ])
+  }, [question, currentQ, formData.dept, formData.year])
 
   const validate = useCallback((): boolean => {
     if (!question) return true
@@ -117,8 +126,8 @@ export function AuraTheme({
 
     if (question.required) {
       if (question.type === 'checkbox') {
-        if ((val as string[]).length === 0) {
-          setError('Pick at least one!')
+        if (!Array.isArray(val) || val.length === 0) {
+          setError('Pick at least one option!')
           return false
         }
         return true
@@ -152,13 +161,24 @@ export function AuraTheme({
         setTransitioning(false)
         if (onSubmit) {
           try {
-            const answerMap: AnswerMap = {
-              name: formData.name,
-              email: formData.email,
-              dept: formData.dept,
-              year: formData.year,
-              interests: formData.interests,
-            }
+            const answerMap: AnswerMap = {}
+            activeQuestions.forEach((q, idx) => {
+              if (formData[q.id] !== undefined) {
+                answerMap[q.id] = formData[q.id]
+              } else if (q.type === 'checkbox') {
+                answerMap[q.id] = formData.interests || []
+              } else if (q.type === 'dept') {
+                answerMap[q.id] = formData.dept || ''
+              } else if (q.type === 'year') {
+                answerMap[q.id] = formData.year || ''
+              } else if (idx === 0) {
+                answerMap[q.id] = formData.name || ''
+              } else if (idx === 1) {
+                answerMap[q.id] = formData.email || ''
+              } else {
+                answerMap[q.id] = ''
+              }
+            })
             await onSubmit(answerMap)
           } catch (err) {
             console.error('Failed to submit form:', err)
@@ -168,7 +188,7 @@ export function AuraTheme({
         if (onComplete) onComplete()
       }
     }, 320)
-  }, [currentQ, validate, total, onSubmit, formData, onComplete])
+  }, [currentQ, validate, total, onSubmit, formData, activeQuestions, onComplete])
 
   const goBack = useCallback(() => {
     if (currentQ === 0) return
@@ -206,6 +226,7 @@ export function AuraTheme({
 
       {stage === 'form' && question && (
         <FormQuestion
+          title={title}
           question={question}
           questionIndex={currentQ}
           totalQuestions={total}
@@ -227,6 +248,8 @@ export function AuraTheme({
 
       {stage === 'success' && (
         <SuccessScreen
+          title="YOU'RE IN."
+          subtitle={`Registration confirmed for ${title}.`}
           formData={formData}
           passId={passId.current}
           onReset={handleReset}
@@ -235,3 +258,4 @@ export function AuraTheme({
     </div>
   )
 }
+

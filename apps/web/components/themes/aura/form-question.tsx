@@ -15,6 +15,7 @@ import { ProgressBar } from './progress-bar'
 import { BgDecor } from './bg-decor'
 
 export function FormQuestion({
+  title = 'AURA',
   question,
   questionIndex,
   totalQuestions,
@@ -92,7 +93,7 @@ export function FormQuestion({
         }}
       >
         <div className="font-anton-aura" style={{ fontSize: 18, color: '#00F0FF', letterSpacing: 2 }}>
-          AURA <span style={{ color: 'rgba(245,240,232,0.3)', fontSize: 12, letterSpacing: 4 }}>2026</span>
+          {title} <span style={{ color: 'rgba(245,240,232,0.3)', fontSize: 12, letterSpacing: 4 }}>2026</span>
         </div>
         <ProgressBar current={questionIndex + 1} total={totalQuestions} />
       </div>

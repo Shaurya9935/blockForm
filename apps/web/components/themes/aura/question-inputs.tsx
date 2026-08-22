@@ -4,32 +4,33 @@ import React, { useRef, useEffect } from 'react'
 import type { Question, Dept, YearCode, Interest } from './types'
 
 export const DEFAULT_DEPTS: { code: Dept; label: string }[] = [
-  { code: 'CSE', label: 'Computer Science' },
-  { code: 'ECE', label: 'Electronics' },
-  { code: 'ME', label: 'Mechanical' },
-  { code: 'AI', label: 'Artificial Intel.' },
-  { code: 'CIVIL', label: 'Civil Engg.' },
-  { code: 'MBA', label: 'Management' },
+  { code: 'ENG', label: 'Engineering' },
+  { code: 'DESIGN', label: 'Design & UI/UX' },
+  { code: 'PROD', label: 'Product & Tech' },
+  { code: 'AI', label: 'AI & Data Science' },
+  { code: 'BIZ', label: 'Business & Ops' },
+  { code: 'OTHER', label: 'Other Domain' },
 ]
 
 export const DEFAULT_YEARS: { code: YearCode; num: string; label: string }[] = [
-  { code: '1ST', num: '01', label: 'FIRST YEAR' },
-  { code: '2ND', num: '02', label: 'SECOND YEAR' },
-  { code: '3RD', num: '03', label: 'THIRD YEAR' },
-  { code: '4TH', num: '04', label: 'FINAL YEAR' },
+  { code: 'GENERAL', num: '01', label: 'GENERAL ACCESS' },
+  { code: 'VIP', num: '02', label: 'VIP PASS' },
+  { code: 'CREATOR', num: '03', label: 'CREATOR TIER' },
+  { code: 'STUDENT', num: '04', label: 'STUDENT PASS' },
 ]
 
 export const DEFAULT_INTERESTS: Interest[] = [
-  'MUSIC',
-  'DANCE',
-  'GAMING',
-  'CODING',
-  'ESPORTS',
-  'DESIGN',
-  'SPORTS',
+  'KEYNOTES',
   'WORKSHOPS',
-  'PHOTOGRAPHY',
+  'HACKATHON',
+  'NETWORKING',
+  'GAMING',
+  'DESIGN',
+  'AI & TECH',
+  'MUSIC',
+  'PANELS',
 ]
+
 
 export function ErrorMsg({ msg }: { msg: string }) {
   return (

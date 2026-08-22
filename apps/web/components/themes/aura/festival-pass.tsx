@@ -24,7 +24,14 @@ export const QR_PATTERN = [
   [1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 0],
 ]
 
-export function FestivalPass({ data, passId, confirmed = false }: FestivalPassProps) {
+export function FestivalPass({
+  title = 'AURA',
+  subtitle = '2026',
+  footerNote = 'ALL-ACCESS PASS · VERIFIED',
+  data,
+  passId,
+  confirmed = false,
+}: FestivalPassProps) {
   const { name = '', dept = '', year = '', interests = [] } = data || {}
   const firstName = name.split(' ')[0]?.toUpperCase() ?? ''
   const lastName = name.split(' ').slice(1).join(' ').toUpperCase() || ''
@@ -65,11 +72,11 @@ export function FestivalPass({ data, passId, confirmed = false }: FestivalPassPr
         }}
       >
         <div>
-          <div className="font-anton-aura" style={{ fontSize: 28, color: '#00F0FF', letterSpacing: 3, lineHeight: 1 }}>
-            AURA
+          <div className="font-anton-aura" style={{ fontSize: 26, color: '#00F0FF', letterSpacing: 3, lineHeight: 1 }}>
+            {title}
           </div>
-          <div className="font-anton-aura" style={{ fontSize: 14, color: 'rgba(245,240,232,0.4)', letterSpacing: 6, marginTop: 2 }}>
-            2026
+          <div className="font-anton-aura" style={{ fontSize: 13, color: 'rgba(245,240,232,0.4)', letterSpacing: 4, marginTop: 3 }}>
+            {subtitle}
           </div>
         </div>
         <div
@@ -84,7 +91,7 @@ export function FestivalPass({ data, passId, confirmed = false }: FestivalPassPr
             color: confirmed ? '#BAFF29' : '#00F0FF',
           }}
         >
-          {confirmed ? '✓ CONFIRMED' : 'FESTIVAL PASS'}
+          {confirmed ? '✓ CONFIRMED' : 'EVENT PASS'}
         </div>
       </div>
 
@@ -129,16 +136,16 @@ export function FestivalPass({ data, passId, confirmed = false }: FestivalPassPr
         )}
       </div>
 
-      {/* Dept + Year */}
+      {/* Category / Dept + Tier / Year */}
       <div style={{ display: 'flex', gap: 28, marginBottom: 20, position: 'relative', zIndex: 1 }}>
         <div>
           <div style={{ fontSize: 9, letterSpacing: 3, color: 'rgba(245,240,232,0.35)', marginBottom: 4 }}>
-            DEPT
+            CATEGORY
           </div>
           <div
             className="font-anton-aura"
             style={{
-              fontSize: 20,
+              fontSize: 18,
               color: dept ? '#BAFF29' : 'rgba(245,240,232,0.12)',
               transition: 'color 0.35s ease',
               letterSpacing: 1,
@@ -149,28 +156,28 @@ export function FestivalPass({ data, passId, confirmed = false }: FestivalPassPr
         </div>
         <div>
           <div style={{ fontSize: 9, letterSpacing: 3, color: 'rgba(245,240,232,0.35)', marginBottom: 4 }}>
-            YEAR
+            TIER / ACCESS
           </div>
           <div
             className="font-anton-aura"
             style={{
-              fontSize: 20,
+              fontSize: 18,
               color: year ? '#FF5C00' : 'rgba(245,240,232,0.12)',
               transition: 'color 0.35s ease',
               letterSpacing: 1,
             }}
           >
-            {year ? (year.includes('YR') ? year : `${year} YR`) : '——'}
+            {year || '——'}
           </div>
         </div>
       </div>
 
-      {/* Interests */}
+      {/* Interests / Tracks */}
       <div style={{ minHeight: 48, position: 'relative', zIndex: 1, marginBottom: 20 }}>
         {interests && interests.length > 0 ? (
           <>
             <div style={{ fontSize: 9, letterSpacing: 3, color: 'rgba(245,240,232,0.35)', marginBottom: 8 }}>
-              INTERESTS
+              TRACKS / PREFERENCES
             </div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
               {interests.map((tag) => (
@@ -195,7 +202,7 @@ export function FestivalPass({ data, passId, confirmed = false }: FestivalPassPr
         ) : (
           <div style={{ height: 48, display: 'flex', alignItems: 'center' }}>
             <div style={{ fontSize: 9, letterSpacing: 3, color: 'rgba(245,240,232,0.12)' }}>
-              INTERESTS TO APPEAR HERE
+              TRACKS TO APPEAR HERE
             </div>
           </div>
         )}
@@ -255,9 +262,10 @@ export function FestivalPass({ data, passId, confirmed = false }: FestivalPassPr
           {passId}
         </div>
         <div style={{ fontSize: 9, color: 'rgba(245,240,232,0.25)', letterSpacing: 1 }}>
-          15–17 FEB · CSJMU
+          {footerNote}
         </div>
       </div>
     </div>
   )
 }
+
