@@ -40,7 +40,14 @@ export const useSignIn = () => {
     isPending,
     isSuccess,
     status,
-  } = trpc.auth.signInUserWithEmailAndPassword.useMutation();
+  } = trpc.auth.signInUserWithEmailAndPassword.useMutation({
+    onSuccess: (data) => {
+      if (typeof window !== "undefined" && data?.token) {
+        localStorage.setItem("blockform_auth_token", data.token);
+      }
+      utils.auth.getLoggedInUserInfo.invalidate();
+    },
+  });
 
   return {
     signInUserWithEmailAndPassword,
@@ -83,6 +90,9 @@ export const useSignOut = () => {
     error,
   } = trpc.auth.signOut.useMutation({
     onSuccess: () => {
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("blockform_auth_token");
+      }
       // Wipe cached user data immediately
       utils.auth.getLoggedInUserInfo.reset();
     },

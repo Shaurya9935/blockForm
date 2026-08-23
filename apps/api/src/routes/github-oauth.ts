@@ -40,17 +40,29 @@ githubOAuthRouter.get('/signout', (_req: Request, res: Response) => {
 });
 
 // Step 1: Redirect user to GitHub's authorization page
-githubOAuthRouter.get('/github', (_req: Request, res: Response) => {
-  const authUrl = getGitHubAuthUrl();
+githubOAuthRouter.get('/github', (req: Request, res: Response) => {
+  const redirectOrigin = (req.query.redirect_origin as string) || '';
+  const authUrl = getGitHubAuthUrl(redirectOrigin);
   res.redirect(authUrl);
 });
 
 // Step 2: GitHub redirects back here with ?code=...
 githubOAuthRouter.get('/github/callback', async (req: Request, res: Response) => {
   const code = req.query.code as string | undefined;
+  const state = req.query.state as string | undefined;
+
+  let frontendBaseUrl = FRONTEND_CALLBACK_URL;
+  if (
+    state &&
+    (state.startsWith('http://localhost') ||
+      state.startsWith('http://127.0.0.1') ||
+      state.startsWith('https://'))
+  ) {
+    frontendBaseUrl = state.replace(/\/$/, '');
+  }
 
   if (!code) {
-    return res.redirect(`${FRONTEND_CALLBACK_URL}/signin?error=github_missing_code`);
+    return res.redirect(`${frontendBaseUrl}/signin?error=github_missing_code`);
   }
 
   try {
@@ -72,11 +84,11 @@ githubOAuthRouter.get('/github/callback', async (req: Request, res: Response) =>
     // Set the authentication cookie with cross-site support
     res.cookie('authentication-token', token, getAuthCookieOptions());
 
-    // Redirect the browser back to the frontend dashboard
-    return res.redirect(`${FRONTEND_CALLBACK_URL}/dashboard`);
+    // Redirect the browser back to the frontend dashboard with the token param
+    return res.redirect(`${frontendBaseUrl}/dashboard?token=${encodeURIComponent(token)}`);
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'unknown_error';
     console.error('[GitHub OAuth] Error during callback:', message);
-    return res.redirect(`${FRONTEND_CALLBACK_URL}/signin?error=github_oauth_failed`);
+    return res.redirect(`${frontendBaseUrl}/signin?error=github_oauth_failed`);
   }
 });

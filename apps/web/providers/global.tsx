@@ -17,6 +17,26 @@ const queryClient = new QueryClient({
   },
 });
 
+function AuthTokenSync() {
+  React.useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      const urlParams = new URLSearchParams(window.location.search);
+      const token = urlParams.get("token");
+      if (token) {
+        localStorage.setItem("blockform_auth_token", token);
+        urlParams.delete("token");
+        const newQuery = urlParams.toString();
+        const newUrl = `${window.location.pathname}${newQuery ? `?${newQuery}` : ""}${window.location.hash}`;
+        window.history.replaceState({}, "", newUrl);
+      }
+    } catch {
+      // ignore
+    }
+  }, []);
+  return null;
+}
+
 export const GlobalProviders: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [trpcClient] = useState(() =>
     trpc.createClient({
@@ -32,6 +52,7 @@ export const GlobalProviders: React.FC<{ children: React.ReactNode }> = ({ child
         disableTransitionOnChange
       >
         <trpc.Provider queryClient={queryClient} client={trpcClient}>
+          <AuthTokenSync />
           {children}
           <Toaster />
         </trpc.Provider>

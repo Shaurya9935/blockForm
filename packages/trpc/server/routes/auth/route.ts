@@ -29,7 +29,8 @@ export const authRouter = router({
     setAuthenticationCookie(ctx, token)
 
     return {
-      id
+      id,
+      token,
     }
   }),
 
@@ -51,7 +52,8 @@ export const authRouter = router({
     setAuthenticationCookie(ctx, token)
 
     return {
-      id
+      id,
+      token,
     }
   }),
   getLoggedInUserInfo: authenticatedProcedure

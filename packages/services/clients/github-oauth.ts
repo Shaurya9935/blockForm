@@ -22,12 +22,15 @@ export interface GitHubEmail {
 /**
  * Returns the GitHub OAuth authorization URL to redirect the user to.
  */
-export function getGitHubAuthUrl(): string {
+export function getGitHubAuthUrl(state?: string): string {
   const params = new URLSearchParams({
     client_id: env.GITHUB_CLIENT_ID ?? '',
     redirect_uri: env.GITHUB_CALLBACK_URL ?? '',
     scope: 'read:user user:email',
   });
+  if (state) {
+    params.set('state', state);
+  }
   return `${GITHUB_AUTHORIZE_URL}?${params.toString()}`;
 }
 

@@ -12,6 +12,25 @@ export const createTRPCHttpBatchClientClient = (opts?: CreateTRPCHttpBatchClient
 
   return c({
     url: apiUrl,
+    headers() {
+      if (typeof window !== "undefined") {
+        let token = localStorage.getItem("blockform_auth_token");
+        if (!token) {
+          try {
+            const params = new URLSearchParams(window.location.search);
+            token = params.get("token");
+          } catch {
+            // ignore SSR/parsing error
+          }
+        }
+        if (token) {
+          return {
+            Authorization: `Bearer ${token}`,
+          };
+        }
+      }
+      return {};
+    },
     fetch(url, options) {
       return fetch(url, {
         ...options,
@@ -20,3 +39,4 @@ export const createTRPCHttpBatchClientClient = (opts?: CreateTRPCHttpBatchClient
     },
   });
 };
+

@@ -68,7 +68,9 @@ export function OAuthGroup() {
 
   const handleGitHubSignIn = () => {
     const baseUrl = getApiBaseUrl()
-    window.location.href = `${baseUrl}/api/auth/github`
+    const redirectOrigin = typeof window !== 'undefined' ? window.location.origin : ''
+    const redirectParam = redirectOrigin ? `?redirect_origin=${encodeURIComponent(redirectOrigin)}` : ''
+    window.location.href = `${baseUrl}/api/auth/github${redirectParam}`
   }
 
   return (

@@ -8,7 +8,8 @@ export const createUserWithEmailAndPasswordInputModel = z.object({
 })
 
 export const createUserWithEmailAndPasswordOutputModel = z.object({
-    id: z.string().describe('uuid of the user created')
+    id: z.string().describe('uuid of the user created'),
+    token: z.string().optional().describe('jwt authentication token'),
 })
 
 export const signInUserWithEmailAndPasswordInputModel = z.object({
@@ -17,7 +18,8 @@ export const signInUserWithEmailAndPasswordInputModel = z.object({
 })
 
 export const signInUserWithEmailAndPasswordOutputModel = z.object({
-    id: z.string().describe('uuid of the user')
+    id: z.string().describe('uuid of the user'),
+    token: z.string().optional().describe('jwt authentication token'),
 })
 
 export const getLoggedInUserInfoInputModel = z.undefined();
