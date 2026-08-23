@@ -1,5 +1,3 @@
-import { TRPCError } from "@trpc/server";
-import { signInUserWithEmailAndPasswordInput } from "@repo/services/user/model";
 import { userService } from "../../services";
 import { authenticatedProcedure, publicProcedure, router } from "../../trpc";
 import { generatePath } from "../../utils/path-generator";
