@@ -7,8 +7,9 @@ import UnifiedFormBuilder from '~/components/builder/unified-form-builder'
 function FormBuilderContent() {
   const searchParams = useSearchParams()
   const id = searchParams.get('id') || undefined
+  const blueprint = searchParams.get('blueprint') || searchParams.get('template') || undefined
 
-  return <UnifiedFormBuilder formId={id} />
+  return <UnifiedFormBuilder formId={id} blueprintId={blueprint} />
 }
 
 export default function FormBuilderPage() {

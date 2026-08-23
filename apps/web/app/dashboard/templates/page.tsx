@@ -24,25 +24,47 @@ interface TemplateTeaser {
 
 const TEMPLATE_TEASERS: TemplateTeaser[] = [
   {
-    id: 'overworld-starter',
-    title: 'Minecraft Overworld Form',
-    category: 'Themes',
-    description: 'Interactive 2D voxel landscape with dynamic sky transitions, pixel fonts, and block progress indicator.',
-    icon: '⛏️',
-    fieldsCount: 6,
+    id: 'event-feedback',
+    title: 'Event Feedback & Experience Survey',
+    category: 'Events',
+    description: 'Complete post-event satisfaction survey with ratings, highlights, logistics review, and future interest.',
+    icon: '🎤',
+    fieldsCount: 7,
     themeBadge: 'Overworld Theme',
     badgeColor: 'bg-[rgba(106,191,60,0.15)] text-[#6abf3c] border-[rgba(106,191,60,0.3)]',
     popular: true,
+    newTag: true,
   },
   {
-    id: 'nether-cavern',
-    title: 'Nether Cavern Respondent Form',
-    category: 'Themes',
-    description: 'Deep Nether cavern layout featuring floating Ghasts, Piglins, lava river shimmers, and particle embers.',
-    icon: '🔥',
-    fieldsCount: 7,
+    id: 'college-registration',
+    title: 'College Fest Registration',
+    category: 'Events',
+    description: 'Interactive student registration collecting academic department, year, tech tracks, and activity consent.',
+    icon: '🏫',
+    fieldsCount: 6,
+    themeBadge: 'Overworld Theme',
+    badgeColor: 'bg-[rgba(201,168,76,0.15)] text-[#c9a84c] border-[rgba(201,168,76,0.3)]',
+    popular: true,
+  },
+  {
+    id: 'customer-survey',
+    title: 'Product CSAT & Customer Satisfaction',
+    category: 'Survey',
+    description: 'Clean customer satisfaction survey with rating matrices, multi-choice feedback, and NPS scoring.',
+    icon: '📋',
+    fieldsCount: 6,
+    themeBadge: 'Default Dark',
+    badgeColor: 'bg-[rgba(96,165,250,0.15)] text-[#60a5fa] border-[rgba(96,165,250,0.3)]',
+  },
+  {
+    id: 'gaming-community',
+    title: 'Gaming Squad & Tournament Signup',
+    category: 'Education',
+    description: 'Esports tournament registration, discord contact, skill bracket matching, and game selections.',
+    icon: '🎮',
+    fieldsCount: 6,
     themeBadge: 'Nether Theme',
-    badgeColor: 'bg-[rgba(255,92,0,0.15)] text-[#ff5c00] border-[rgba(255,92,0,0.3)]',
+    badgeColor: 'bg-[rgba(167,139,250,0.15)] text-[#a78bfa] border-[rgba(167,139,250,0.3)]',
     newTag: true,
   },
   {
@@ -57,34 +79,14 @@ const TEMPLATE_TEASERS: TemplateTeaser[] = [
     popular: true,
   },
   {
-    id: 'product-csat',
-    title: 'CSAT & Product Feedback',
-    category: 'Survey',
-    description: 'Clean customer satisfaction survey with rating matrices, multi-choice feedback, and response webhooks.',
-    icon: '⭐',
-    fieldsCount: 5,
-    themeBadge: 'Default Dark',
-    badgeColor: 'bg-[#21262d] text-[#eceae4] border-[#30363d]',
-  },
-  {
-    id: 'waitlist-lead',
-    title: 'Beta Waitlist & Lead Magnet',
-    category: 'Leads',
-    description: 'Minimalist high-converting waitlist form with custom branding, email validation, and referral hooks.',
-    icon: '🚀',
-    fieldsCount: 4,
-    themeBadge: 'Minimalist',
-    badgeColor: 'bg-[rgba(147,51,234,0.15)] text-[#c084fc] border-[rgba(147,51,234,0.3)]',
-  },
-  {
-    id: 'quiz-knowledge',
-    title: 'Interactive Knowledge Quiz',
-    category: 'Education',
-    description: 'Scored multi-step questionnaire with instant score calculations and custom pass/fail result screens.',
-    icon: '💡',
-    fieldsCount: 8,
-    themeBadge: 'Interactive',
-    badgeColor: 'bg-[rgba(234,179,8,0.15)] text-[#fde047] border-[rgba(234,179,8,0.3)]',
+    id: 'nether-cavern',
+    title: 'Nether Cavern Respondent Form',
+    category: 'Themes',
+    description: 'Deep Nether cavern layout featuring floating Ghasts, Piglins, lava river shimmers, and particle embers.',
+    icon: '🔥',
+    fieldsCount: 7,
+    themeBadge: 'Nether Theme',
+    badgeColor: 'bg-[rgba(255,92,0,0.15)] text-[#ff5c00] border-[rgba(255,92,0,0.3)]',
   },
 ]
 
@@ -229,7 +231,8 @@ function TemplatesContent() {
               {filteredTemplates.map((template) => (
                 <div
                   key={template.id}
-                  className="group bg-[#161b22]/70 border border-[#21262d] hover:border-[#384350] rounded-2xl p-5 flex flex-col justify-between transition-all hover:shadow-[0_12px_30px_rgba(0,0,0,0.4)] hover:-translate-y-1 relative"
+                  onClick={() => router.push(`/dashboard/forms/builder?blueprint=${template.id}`)}
+                  className="group bg-[#161b22]/70 border border-[#21262d] hover:border-[#384350] rounded-2xl p-5 flex flex-col justify-between transition-all hover:shadow-[0_12px_30px_rgba(0,0,0,0.4)] hover:-translate-y-1 relative cursor-pointer"
                 >
                   {/* Top Header */}
                   <div>
@@ -261,15 +264,29 @@ function TemplatesContent() {
                     </p>
                   </div>
 
-                  {/* Footer Meta */}
-                  <div className="pt-4 border-t border-[#21262d]/60 flex items-center justify-between mt-2">
-                    <span className={`text-[10px] font-bold px-2.5 py-1 rounded-md border ${template.badgeColor}`}>
-                      {template.themeBadge}
-                    </span>
+                  {/* Footer Meta & Action */}
+                  <div className="pt-4 border-t border-[#21262d]/60 flex flex-col gap-3 mt-2">
+                    <div className="flex items-center justify-between">
+                      <span className={`text-[10px] font-bold px-2.5 py-1 rounded-md border ${template.badgeColor}`}>
+                        {template.themeBadge}
+                      </span>
 
-                    <span className="text-[11px] font-semibold text-[#6e7a8a]">
-                      {template.fieldsCount} Fields Included
-                    </span>
+                      <span className="text-[11px] font-semibold text-[#6e7a8a]">
+                        {template.fieldsCount} Fields Included
+                      </span>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        router.push(`/dashboard/forms/builder?blueprint=${template.id}`)
+                      }}
+                      className="w-full bg-[#161b22] hover:bg-[rgba(106,191,60,0.12)] border border-[#21262d] hover:border-[rgba(106,191,60,0.35)] text-[#8b9ab0] hover:text-[#6abf3c] rounded-xl py-2 text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                    >
+                      <span>Use Starter Pack</span>
+                      <span>→</span>
+                    </button>
                   </div>
                 </div>
               ))}

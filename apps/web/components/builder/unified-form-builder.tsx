@@ -1,7 +1,5 @@
-'use client'
-
 import React, { useState, useCallback, useMemo, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import {
   useNodesState,
   useEdgesState,
@@ -22,6 +20,7 @@ import {
   useUpdateForm,
 } from '~/hooks/api/form'
 import { normalizeOptions } from '~/lib/utils'
+import { getBlueprintById } from '~/lib/blueprints'
 
 import {
   BuilderLeftSidebar,
@@ -41,6 +40,7 @@ const generateLabelKey = (label: string, fallbackIdx: number) => {
 
 export interface UnifiedFormBuilderProps {
   formId?: string
+  blueprintId?: string
   onClose?: () => void
 }
 
@@ -95,9 +95,13 @@ const THEME_OPTIONS: ThemeOptionCard[] = [
   },
 ]
 
-function UnifiedCanvas({ formId, onClose }: UnifiedFormBuilderProps) {
+function UnifiedCanvas({ formId, blueprintId, onClose }: UnifiedFormBuilderProps) {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const reactFlowInstance = useReactFlow()
+
+  const activeBlueprintId = blueprintId || searchParams.get('blueprint') || searchParams.get('template') || ''
+  const activeBlueprint = getBlueprintById(activeBlueprintId)
 
   const handleBack = useCallback(() => {
     if (onClose) {
@@ -374,10 +378,70 @@ function UnifiedCanvas({ formId, onClose }: UnifiedFormBuilderProps) {
     toast.success('Auto-layout applied to horizontal flow')
   }, [setNodes, setEdges, generateSequentialEdges])
 
-  // Load existing form fields into nodes and edges
+  // Load existing form fields into nodes and edges or initialize blueprint starter pack
   useEffect(() => {
     if (!fields || fields.length === 0) {
       if (!formLoading && !fieldsLoading && nodes.length === 0) {
+        // If a blueprint starter pack is requested
+        if (activeBlueprint) {
+          setFormTitle(activeBlueprint.title)
+          setSelectedTheme(activeBlueprint.theme)
+          setSelectedExperience(activeBlueprint.experience)
+
+          let currentX = 420
+          const bpNodes: Node[] = [
+            {
+              id: 'start-node',
+              type: 'startNode',
+              position: { x: 80, y: 180 },
+              data: { label: 'Form Start' },
+            },
+          ]
+
+          activeBlueprint.fields.forEach((f, idx) => {
+            const nodeId = `node-bp-${idx + 1}`
+            bpNodes.push({
+              id: nodeId,
+              type: 'fieldNode',
+              position: { x: currentX, y: 180 },
+              data: {
+                id: nodeId,
+                label: f.label,
+                labelKey: f.labelKey,
+                type: f.type,
+                description: f.description || '',
+                placeholder: f.placeholder || '',
+                isRequired: Boolean(f.isRequired),
+                index: idx + 1,
+                options: normalizeOptions(f.options),
+                maxRating: f.maxRating ?? 5,
+                minValue: f.minValue,
+                maxValue: f.maxValue,
+                onSelectNode: handleSelectNode,
+                onDeleteNode: handleDeleteNode,
+                onMoveNodeUp: handleMoveNodeUp,
+                onMoveNodeDown: handleMoveNodeDown,
+              },
+            })
+            currentX += 380
+          })
+
+          bpNodes.push({
+            id: 'end-node',
+            type: 'endNode',
+            position: { x: currentX, y: 180 },
+            data: { label: 'Form Submit' },
+          })
+
+          setNodes(bpNodes)
+          setEdges(generateSequentialEdges(bpNodes))
+          toast.success(
+            `⚡ "${activeBlueprint.name}" Blueprint Starter Pack loaded! You can edit any question, add/remove blocks, or change theme.`,
+            { duration: 4500 }
+          )
+          return
+        }
+
         const initialNodes: Node[] = [
           {
             id: 'start-node',
@@ -815,8 +879,28 @@ function UnifiedCanvas({ formId, onClose }: UnifiedFormBuilderProps) {
                 fontFamily: "'Outfit', sans-serif",
               }}
             />
-            <div style={{ fontSize: 11, color: '#6abf3c', fontWeight: 600 }}>
-              Form Builder Studio
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 2 }}>
+              <div style={{ fontSize: 11, color: '#6abf3c', fontWeight: 600 }}>
+                Form Builder Studio
+              </div>
+              {activeBlueprint && (
+                <span
+                  style={{
+                    fontSize: 10,
+                    fontWeight: 700,
+                    color: activeBlueprint.accent,
+                    backgroundColor: activeBlueprint.accent + '15',
+                    border: `1px solid ${activeBlueprint.accent}35`,
+                    padding: '1px 8px',
+                    borderRadius: 12,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 4,
+                  }}
+                >
+                  <span>{activeBlueprint.emoji}</span> {activeBlueprint.name} Blueprint
+                </span>
+              )}
             </div>
           </div>
         </div>

@@ -1,10 +1,15 @@
 'use client'
 
 import React, { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { IconPlus } from './icons'
 import { useCreateForm } from '~/hooks/api/form'
+import { BLUEPRINTS } from '~/lib/blueprints'
 
 export function CreateFormModal({ onClose }: { onClose: () => void }) {
+  const router = useRouter()
+  const [startType, setStartType] = useState<'blank' | 'blueprint'>('blank')
+  const [selectedBlueprint, setSelectedBlueprint] = useState('event-feedback')
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
   const [focused, setFocused] = useState(false)
@@ -14,6 +19,12 @@ export function CreateFormModal({ onClose }: { onClose: () => void }) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (startType === 'blueprint') {
+      onClose()
+      router.push(`/dashboard/forms/builder?blueprint=${selectedBlueprint}`)
+      return
+    }
+
     if (!name.trim() || isPending) return
     try {
       await createFormAsync({
@@ -82,117 +93,161 @@ export function CreateFormModal({ onClose }: { onClose: () => void }) {
           </button>
         </div>
 
-        {/* Error message */}
-        {isError && (
-          <div
-            style={{
-              padding: '10px 14px',
-              marginBottom: 16,
-              backgroundColor: 'rgba(220, 38, 38, 0.1)',
-              border: '1px solid rgba(220, 38, 38, 0.3)',
-              borderRadius: 8,
-              color: '#f87171',
-              fontSize: 13,
-            }}
-          >
-            {error?.message || 'Failed to create form. Please try again.'}
-          </div>
-        )}
-
-        {/* Name input */}
-        <div style={{ marginBottom: 16 }}>
-          <label style={{ fontSize: 13, fontWeight: 600, color: '#8b9ab0', display: 'block', marginBottom: 8 }}>
-            Form name <span style={{ color: '#ef4444' }}>*</span>
-          </label>
-          <input
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="e.g. College Fest Registration"
-            onFocus={() => setFocused(true)}
-            onBlur={() => setFocused(false)}
-            autoFocus
-            required
-            maxLength={55}
-            disabled={isPending}
-            style={{
-              width: '100%',
-              padding: '12px 14px',
-              backgroundColor: '#0d1117',
-              border: `1.5px solid ${focused ? '#6abf3c' : '#2d3741'}`,
-              borderRadius: 8,
-              fontSize: 14,
-              color: '#eceae4',
-              fontFamily: "'Outfit', sans-serif",
-              outline: 'none',
-              transition: 'border-color 0.15s',
-              boxSizing: 'border-box',
-              boxShadow: focused ? '0 0 0 3px rgba(106,191,60,0.1)' : 'none',
-            }}
-          />
-        </div>
-
-        {/* Description input */}
-        <div style={{ marginBottom: 20 }}>
-          <label style={{ fontSize: 13, fontWeight: 600, color: '#8b9ab0', display: 'block', marginBottom: 8 }}>
-            Description <span style={{ color: '#4e5a6a', fontWeight: 400 }}>(optional)</span>
-          </label>
-          <textarea
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            placeholder="What is this form for?"
-            onFocus={() => setDescFocused(true)}
-            onBlur={() => setDescFocused(false)}
-            maxLength={300}
-            rows={2}
-            disabled={isPending}
-            style={{
-              width: '100%',
-              padding: '12px 14px',
-              backgroundColor: '#0d1117',
-              border: `1.5px solid ${descFocused ? '#6abf3c' : '#2d3741'}`,
-              borderRadius: 8,
-              fontSize: 14,
-              color: '#eceae4',
-              fontFamily: "'Outfit', sans-serif",
-              outline: 'none',
-              transition: 'border-color 0.15s',
-              boxSizing: 'border-box',
-              resize: 'none',
-              boxShadow: descFocused ? '0 0 0 3px rgba(106,191,60,0.1)' : 'none',
-            }}
-          />
-        </div>
-
         {/* Start options */}
-        <div style={{ marginBottom: 24 }}>
+        <div style={{ marginBottom: 20 }}>
           <label style={{ fontSize: 13, fontWeight: 600, color: '#8b9ab0', display: 'block', marginBottom: 10 }}>
             Start with
           </label>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
             {[
-              { icon: '📄', label: 'Blank form', desc: 'Start from scratch', active: true },
-              { icon: '📐', label: 'Blueprint', desc: 'Use a template', active: false },
-            ].map((opt) => (
-              <div
-                key={opt.label}
-                style={{
-                  padding: '14px',
-                  backgroundColor: opt.active ? 'rgba(106,191,60,0.08)' : '#0d1117',
-                  border: `1.5px solid ${opt.active ? 'rgba(106,191,60,0.35)' : '#21262d'}`,
-                  borderRadius: 8,
-                  cursor: 'pointer',
-                  transition: 'all 0.15s',
-                }}
-              >
-                <div style={{ fontSize: 20, marginBottom: 6 }}>{opt.icon}</div>
-                <div style={{ fontSize: 13, fontWeight: 700, color: opt.active ? '#eceae4' : '#8b9ab0', marginBottom: 2 }}>
-                  {opt.label}
+              { id: 'blank', icon: '📄', label: 'Blank form', desc: 'Start from scratch' },
+              { id: 'blueprint', icon: '📐', label: 'Blueprint', desc: 'Use starter pack' },
+            ].map((opt) => {
+              const active = startType === opt.id
+              return (
+                <div
+                  key={opt.id}
+                  onClick={() => setStartType(opt.id as any)}
+                  style={{
+                    padding: '14px',
+                    backgroundColor: active ? 'rgba(106,191,60,0.08)' : '#0d1117',
+                    border: `1.5px solid ${active ? 'rgba(106,191,60,0.35)' : '#21262d'}`,
+                    borderRadius: 8,
+                    cursor: 'pointer',
+                    transition: 'all 0.15s',
+                  }}
+                >
+                  <div style={{ fontSize: 20, marginBottom: 6 }}>{opt.icon}</div>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: active ? '#eceae4' : '#8b9ab0', marginBottom: 2 }}>
+                    {opt.label}
+                  </div>
+                  <div style={{ fontSize: 11, color: '#4e5a6a' }}>{opt.desc}</div>
                 </div>
-                <div style={{ fontSize: 11, color: '#4e5a6a' }}>{opt.desc}</div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         </div>
+
+        {startType === 'blueprint' ? (
+          /* Blueprint selector */
+          <div style={{ marginBottom: 24 }}>
+            <label style={{ fontSize: 13, fontWeight: 600, color: '#8b9ab0', display: 'block', marginBottom: 10 }}>
+              Select Starter Blueprint
+            </label>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxHeight: 200, overflowY: 'auto' }}>
+              {BLUEPRINTS.map((bp) => {
+                const isSelected = selectedBlueprint === bp.id
+                return (
+                  <div
+                    key={bp.id}
+                    onClick={() => setSelectedBlueprint(bp.id)}
+                    style={{
+                      padding: '10px 14px',
+                      backgroundColor: isSelected ? `${bp.accent}14` : '#0d1117',
+                      border: `1px solid ${isSelected ? `${bp.accent}55` : '#21262d'}`,
+                      borderRadius: 8,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      transition: 'all 0.15s',
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                      <span style={{ fontSize: 18 }}>{bp.emoji}</span>
+                      <div>
+                        <div style={{ fontSize: 13, fontWeight: 700, color: '#eceae4' }}>{bp.name}</div>
+                        <div style={{ fontSize: 11, color: '#6e7a8a' }}>{bp.fieldsCount} Pre-configured blocks</div>
+                      </div>
+                    </div>
+                    {isSelected && (
+                      <span style={{ color: bp.accent, fontSize: 12, fontWeight: 700 }}>✓ Selected</span>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        ) : (
+          <>
+            {/* Error message */}
+            {isError && (
+              <div
+                style={{
+                  padding: '10px 14px',
+                  marginBottom: 16,
+                  backgroundColor: 'rgba(220, 38, 38, 0.1)',
+                  border: '1px solid rgba(220, 38, 38, 0.3)',
+                  borderRadius: 8,
+                  color: '#f87171',
+                  fontSize: 13,
+                }}
+              >
+                {error?.message || 'Failed to create form. Please try again.'}
+              </div>
+            )}
+
+            {/* Form name */}
+            <div style={{ marginBottom: 18 }}>
+              <label style={{ fontSize: 13, fontWeight: 600, color: '#8b9ab0', display: 'block', marginBottom: 7 }}>
+                Form Name <span style={{ color: '#6abf3c' }}>*</span>
+              </label>
+              <input
+                type="text"
+                placeholder="e.g., Customer Feedback, Event Signup"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                onFocus={() => setFocused(true)}
+                onBlur={() => setFocused(false)}
+                autoFocus
+                style={{
+                  width: '100%',
+                  padding: '12px 14px',
+                  backgroundColor: '#0d1117',
+                  border: `1.5px solid ${focused ? '#6abf3c' : '#2d3741'}`,
+                  borderRadius: 8,
+                  fontSize: 14,
+                  color: '#eceae4',
+                  fontFamily: "'Outfit', sans-serif",
+                  outline: 'none',
+                  transition: 'border-color 0.15s',
+                  boxSizing: 'border-box',
+                  boxShadow: focused ? '0 0 0 3px rgba(106,191,60,0.1)' : 'none',
+                }}
+              />
+            </div>
+
+            {/* Description */}
+            <div style={{ marginBottom: 24 }}>
+              <label style={{ fontSize: 13, fontWeight: 600, color: '#8b9ab0', display: 'block', marginBottom: 7 }}>
+                Description <span style={{ color: '#4e5a6a', fontWeight: 400 }}>(optional)</span>
+              </label>
+              <textarea
+                placeholder="What is this form for?"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                onFocus={() => setDescFocused(true)}
+                onBlur={() => setDescFocused(false)}
+                rows={3}
+                style={{
+                  width: '100%',
+                  padding: '12px 14px',
+                  backgroundColor: '#0d1117',
+                  border: `1.5px solid ${descFocused ? '#6abf3c' : '#2d3741'}`,
+                  borderRadius: 8,
+                  fontSize: 14,
+                  color: '#eceae4',
+                  fontFamily: "'Outfit', sans-serif",
+                  outline: 'none',
+                  transition: 'border-color 0.15s',
+                  boxSizing: 'border-box',
+                  resize: 'none',
+                  boxShadow: descFocused ? '0 0 0 3px rgba(106,191,60,0.1)' : 'none',
+                }}
+              />
+            </div>
+          </>
+        )}
 
         {/* Actions */}
         <div style={{ display: 'flex', gap: 10 }}>
@@ -217,27 +272,33 @@ export function CreateFormModal({ onClose }: { onClose: () => void }) {
           </button>
           <button
             type="submit"
-            disabled={!name.trim() || isPending}
+            disabled={startType === 'blank' && (!name.trim() || isPending)}
             style={{
               flex: 2,
               padding: '11px',
-              backgroundColor: name.trim() && !isPending ? '#6abf3c' : '#3a4a2f',
+              backgroundColor: startType === 'blueprint' || (name.trim() && !isPending) ? '#6abf3c' : '#3a4a2f',
               border: 'none',
               borderRadius: 7,
-              color: name.trim() && !isPending ? '#0d1117' : '#6e7a8a',
+              color: startType === 'blueprint' || (name.trim() && !isPending) ? '#0d1117' : '#6e7a8a',
               fontSize: 14,
               fontWeight: 700,
               fontFamily: "'Outfit', sans-serif",
-              cursor: name.trim() && !isPending ? 'pointer' : 'not-allowed',
+              cursor: startType === 'blueprint' || (name.trim() && !isPending) ? 'pointer' : 'not-allowed',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               gap: 8,
-              boxShadow: name.trim() && !isPending ? '0 4px 16px rgba(106,191,60,0.25)' : 'none',
+              boxShadow: startType === 'blueprint' || (name.trim() && !isPending) ? '0 4px 16px rgba(106,191,60,0.25)' : 'none',
             }}
           >
             <IconPlus />
-            {isPending ? 'Creating...' : name.trim() ? `Create "${name}"` : 'Create Form'}
+            {startType === 'blueprint'
+              ? 'Open in Builder →'
+              : isPending
+                ? 'Creating...'
+                : name.trim()
+                  ? `Create "${name}"`
+                  : 'Create Form'}
           </button>
         </div>
       </form>

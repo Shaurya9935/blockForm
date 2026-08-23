@@ -295,7 +295,7 @@ export function Sidebar({
           }}
         >
           {/* Upgrade banner */}
-          <div
+          {/* <div
             style={{
               marginBottom: 12,
               padding: '9px 12px',
@@ -342,7 +342,7 @@ export function Sidebar({
             >
               Upgrade
             </button>
-          </div>
+          </div> */}
 
           {/* User row */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
