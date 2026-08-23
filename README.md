@@ -1,128 +1,591 @@
-# BlockForm — Build forms, block by block
+# BlockForm
 
-BlockForm is a modern, modular form builder platform. Create interactive forms, customize themes, publish instantly, and analyze response data seamlessly.
+> A production-style form builder SaaS focused on fast form creation and distinctive respondent experiences.
 
-## What's inside?
+BlockForm is a Typeform-inspired form builder built as a full-stack TypeScript monorepo. Instead of treating forms as plain collections of inputs, BlockForm focuses on a **block-based builder**, **custom respondent themes**, and a foundation for visual workflows and reusable templates.
 
-This Turborepo monorepo includes the following packages and applications:
+## ✨ Features
 
-### Apps and Packages
+### Form Builder
+- Block-based form creation
+- Click to add fields
+- Inline field editing
+- Drag-and-drop field reordering
+- Required/optional fields
+- Field configuration
+- Form preview
+- Public form publishing
+- Response collection
 
-- `web`: Next.js 16 frontend application ([`apps/web`](file:///Users/shauryagupta/Dev/Projects/blockForm/apps/web))
-- `api`: Express & tRPC API server ([`apps/api`](file:///Users/shauryagupta/Dev/Projects/blockForm/apps/api))
-- `@repo/database`: Drizzle ORM database schema and migrations ([`packages/database`](file:///Users/shauryagupta/Dev/Projects/blockForm/packages/database))
-- `@repo/trpc`: Shared tRPC routers and procedure definitions ([`packages/trpc`](file:///Users/shauryagupta/Dev/Projects/blockForm/packages/trpc))
-- `@repo/logger`: Logger utility package ([`packages/logger`](file:///Users/shauryagupta/Dev/Projects/blockForm/packages/logger))
-- `@repo/services`: Shared business logic & services ([`packages/services`](file:///Users/shauryagupta/Dev/Projects/blockForm/packages/services))
-- `@repo/eslint-config`: Shared ESLint configurations
-- `@repo/typescript-config`: Shared TypeScript configurations
+### Currently Supported Fields
+- Text
+- Email
+- Number
+- Dropdown
+- Checkbox
 
-### Utilities
+### Authentication
+- Custom authentication system
+- Email/password registration and login
+- JWT-based authentication
+- HTTP-only authentication cookie
+- Protected dashboard and creator operations
+- GitHub OAuth
+- OAuth identities linked through a generic account model
 
-This Turborepo has some additional tools already setup for you:
+> BlockForm uses its own authentication implementation and does **not** use Better Auth.
 
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
+### Respondent Experience
+BlockForm separates the form's underlying data from how it is presented to respondents.
 
-### Build
+Planned/implemented theme directions include:
+- Overworld-inspired
+- Nether-inspired
+- Professional
+- College/Festival
 
-To build all apps and packages, run the following command:
+Themes are designed as different respondent experiences rather than simple color presets.
 
-```
-cd my-turborepo
+### Form Layouts
+The architecture supports multiple respondent presentation styles:
 
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo build
+- **Journey** — one question at a time
+- **Build Sheet** — all fields on one page
 
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo build
-yarn dlx turbo build
-pnpm exec turbo build
-```
+Theme and layout are intentionally separate concepts.
 
-You can build a specific package by using a [filter](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters):
+### Workflow Builder
+A visual workflow mode is being developed alongside the normal content builder.
 
-```
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo build --filter=docs
+The same form schema is used by both modes:
 
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo build --filter=docs
-yarn exec turbo build --filter=docs
-pnpm exec turbo build --filter=docs
-```
-
-### Develop
-
-To develop all apps and packages, run the following command:
-
-```
-cd my-turborepo
-
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo dev
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo dev
-yarn exec turbo dev
-pnpm exec turbo dev
-```
-
-You can develop a specific package by using a [filter](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters):
-
-```
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo dev --filter=web
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo dev --filter=web
-yarn exec turbo dev --filter=web
-pnpm exec turbo dev --filter=web
+```text
+                 FORM
+                  │
+          ┌───────┴───────┐
+          │               │
+     Content Mode    Workflow Mode
+          │               │
+          └───────┬───────┘
+                  │
+          Public Renderer
 ```
 
-### Remote Caching
+Workflow positions are separate from respondent field order so moving a node visually does not automatically change the order of questions.
 
-> [!TIP]
-> Vercel Remote Cache is free for all plans. Get started today at [vercel.com](https://vercel.com/signup?/signup?utm_source=remote-cache-sdk&utm_campaign=free_remote_cache).
+### Templates
+The project is designed to support reusable seeded templates such as:
+- College Fest Registration
+- Workshop Registration
+- Hackathon Registration
+- Customer Feedback
+- Job Application
+- User Research
 
-Turborepo can use a technique known as [Remote Caching](https://turborepo.com/docs/core-concepts/remote-caching) to share cache artifacts across machines, enabling you to share build caches with your team and CI/CD pipelines.
+A template is cloned into a user's account rather than modified directly.
 
-By default, Turborepo will cache locally. To enable Remote Caching you will need an account with Vercel. If you don't have an account you can [create one](https://vercel.com/signup?utm_source=turborepo-examples), then enter the following commands:
+---
 
+## 🏗️ Architecture
+
+BlockForm is organized as a Turborepo monorepo.
+
+```text
+BlockForm
+│
+├── apps
+│   ├── web
+│   │   └── Next.js frontend
+│   │
+│   └── api
+│       └── Express + tRPC + OpenAPI server
+│
+├── packages
+│   ├── database
+│   │   └── Drizzle ORM + PostgreSQL
+│   │
+│   ├── services
+│   │   └── Business logic
+│   │
+│   ├── trpc
+│   │   └── tRPC procedures/routes
+│   │
+│   ├── logger
+│   │   └── Shared logging
+│   │
+│   ├── eslint-config
+│   └── typescript-config
+│
+├── turbo.json
+├── pnpm-workspace.yaml
+└── package.json
 ```
-cd my-turborepo
 
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo login
+### Request flow
 
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo login
-yarn exec turbo login
-pnpm exec turbo login
+```text
+Next.js UI
+    │
+    ▼
+Frontend API Hook
+    │
+    ▼
+tRPC
+    │
+    ▼
+Service Layer
+    │
+    ▼
+Drizzle ORM
+    │
+    ▼
+PostgreSQL
 ```
 
-This will authenticate the Turborepo CLI with your [Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
+This separation keeps UI, API procedures, business logic, and database access independent.
 
-Next, you can link your Turborepo to your Remote Cache by running the following command from the root of your Turborepo:
+---
 
+## 🔐 Authentication Architecture
+
+BlockForm uses a custom JWT-based authentication system.
+
+### Email/password flow
+
+```text
+Register / Login
+       │
+       ▼
+   tRPC Auth
+       │
+       ▼
+   UserService
+       │
+       ├── password hashing
+       └── JWT creation
+       │
+       ▼
+ HTTP-only Cookie
+       │
+       ▼
+ authenticatedProcedure
+       │
+       ▼
+     ctx.user
 ```
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo link
 
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo link
-yarn exec turbo link
-pnpm exec turbo link
+Authentication tokens are stored in an HTTP-only cookie named:
+
+```text
+authentication-token
 ```
 
-## Useful Links
+Protected tRPC procedures verify the JWT before injecting the authenticated user into the request context.
 
-Learn more about the power of Turborepo:
+### GitHub OAuth
 
-- [Tasks](https://turborepo.com/docs/crafting-your-repository/running-tasks)
-- [Caching](https://turborepo.com/docs/crafting-your-repository/caching)
-- [Remote Caching](https://turborepo.com/docs/core-concepts/remote-caching)
-- [Filtering](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters)
-- [Configuration Options](https://turborepo.com/docs/reference/configuration)
-- [CLI Usage](https://turborepo.com/docs/reference/command-line-reference)
+GitHub OAuth follows the existing authentication system rather than introducing another auth framework.
+
+```text
+BlockForm
+   │
+   ▼
+GitHub Authorization
+   │
+   ▼
+OAuth Callback
+   │
+   ▼
+Verify GitHub Identity
+   │
+   ▼
+Find/Create User
+   │
+   ▼
+Create BlockForm JWT Session
+   │
+   ▼
+Authentication Cookie
+```
+
+OAuth identities are represented through an `accounts` table using:
+
+```text
+provider + providerAccountId
+```
+
+This allows one BlockForm user to eventually have multiple authentication providers.
+
+---
+
+## 🎨 Theme Architecture
+
+Themes are predefined application-level configurations.
+
+The database stores the selected theme identifier rather than an entire theme definition.
+
+Conceptually:
+
+```text
+Form
+├── metadata
+├── settings
+├── theme
+└── fields
+```
+
+For example:
+
+```text
+theme = "nether"
+```
+
+The frontend resolves that identifier through its theme registry.
+
+This avoids introducing a separate themes table until custom/community themes are actually required.
+
+---
+
+## 🛠️ Tech Stack
+
+| Layer | Technology |
+|---|---|
+| Monorepo | Turborepo |
+| Package Manager | pnpm |
+| Frontend | Next.js |
+| UI | React + Tailwind CSS |
+| API | Express.js |
+| RPC | tRPC |
+| Validation | Zod |
+| Database | PostgreSQL |
+| ORM | Drizzle ORM |
+| API Documentation | Scalar + OpenAPI |
+| Authentication | Custom JWT authentication |
+| OAuth | GitHub OAuth |
+| API Hosting | Render |
+| Frontend Hosting | Vercel |
+| Database Hosting | Neon |
+
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+Make sure you have:
+
+- Node.js
+- pnpm
+- PostgreSQL or a hosted PostgreSQL database
+
+Clone the repository:
+
+```bash
+git clone <your-repository-url>
+cd blockForm
+```
+
+Install dependencies:
+
+```bash
+pnpm install
+```
+
+---
+
+## ⚙️ Environment Variables
+
+Create the required environment files based on the existing environment schemas in the project.
+
+Typical local configuration includes:
+
+```env
+PORT=4000
+NEXT_PUBLIC_API_URL=http://localhost:4000/trpc
+DATABASE_URL=<your-postgresql-url>
+JWT_SECRET=<your-secret>
+```
+
+For GitHub OAuth:
+
+```env
+GITHUB_CLIENT_ID=<your-github-client-id>
+GITHUB_CLIENT_SECRET=<your-github-client-secret>
+GITHUB_CALLBACK_URL=http://localhost:4000/api/auth/github/callback
+```
+
+Do **not** commit `.env` files or OAuth secrets to Git.
+
+For production, replace localhost URLs with the deployed API/frontend URLs.
+
+---
+
+## 🗄️ Database
+
+Generate Drizzle migrations:
+
+```bash
+pnpm db:generate
+```
+
+Apply migrations:
+
+```bash
+pnpm db:migrate
+```
+
+The database schema is maintained through Drizzle.
+
+For production, use a separate PostgreSQL database from local development.
+
+---
+
+## 💻 Development
+
+Start the development environment:
+
+```bash
+pnpm dev
+```
+
+The frontend runs on the Next.js development server and the API runs separately.
+
+Typical local setup:
+
+```text
+Frontend
+http://localhost:3000
+
+API
+http://localhost:4000
+```
+
+---
+
+## 🏭 Production Build
+
+Build the monorepo:
+
+```bash
+pnpm build
+```
+
+The API is compiled with `tsup`:
+
+```text
+apps/api
+    ↓
+tsup
+    ↓
+apps/api/dist/index.js
+```
+
+The frontend is built using Next.js:
+
+```text
+apps/web
+    ↓
+next build
+    ↓
+.next
+```
+
+---
+
+## 📚 API Documentation
+
+The API server exposes OpenAPI documentation through Scalar.
+
+When the API is running locally:
+
+```text
+http://localhost:4000/docs
+```
+
+The generated OpenAPI specification is available at:
+
+```text
+http://localhost:4000/openapi.json
+```
+
+tRPC requests are served under:
+
+```text
+http://localhost:4000/trpc
+```
+
+---
+
+## ☁️ Deployment
+
+The current deployment architecture separates the frontend, API, and database:
+
+```text
+                    ┌──────────────┐
+                    │    Vercel    │
+                    │   Next.js    │
+                    └──────┬───────┘
+                           │
+                           ▼
+                    ┌──────────────┐
+                    │    Render    │
+                    │ Express/tRPC │
+                    └──────┬───────┘
+                           │
+                           ▼
+                    ┌──────────────┐
+                    │     Neon     │
+                    │ PostgreSQL   │
+                    └──────────────┘
+```
+
+### Frontend
+
+The `apps/web` application is deployed to Vercel.
+
+Set:
+
+```env
+NEXT_PUBLIC_API_URL=https://<your-api-domain>/trpc
+```
+
+### API
+
+The `apps/api` application is deployed as a Node web service.
+
+The API build bundles internal `@repo/*` workspace packages using `tsup`.
+
+### Database
+
+Production PostgreSQL is hosted separately from local development.
+
+Run production migrations against the production database before relying on the deployed API.
+
+---
+
+## 🔗 OAuth Production Configuration
+
+The GitHub OAuth application's callback URL must exactly match the callback URL used by the API.
+
+Example:
+
+```text
+https://<your-api-domain>/api/auth/github/callback
+```
+
+The frontend URL and API callback URL are intentionally different:
+
+```text
+Frontend:
+https://<your-web-domain>
+
+OAuth callback:
+https://<your-api-domain>/api/auth/github/callback
+```
+
+---
+
+## 📁 Development Philosophy
+
+BlockForm is intentionally being developed incrementally rather than as a single generated application.
+
+The preferred feature flow is:
+
+```text
+DATABASE
+   ↓
+SERVICE
+   ↓
+tRPC PROCEDURE
+   ↓
+API HOOK
+   ↓
+UI
+```
+
+The project aims to:
+- Keep business logic in services
+- Keep tRPC procedures thin
+- Keep frontend API hooks separate from UI
+- Reuse the existing form schema across builder modes and respondent rendering
+- Avoid unnecessary abstractions
+- Prefer small vertical slices over large rewrites
+
+---
+
+## 🗺️ Roadmap
+
+### Core
+- [x] Authentication
+- [x] Protected dashboard
+- [x] Form creation
+- [x] Dynamic form fields
+- [x] Public forms
+- [x] Public submissions
+- [x] Response management
+- [x] GitHub OAuth
+- [ ] Google OAuth
+- [ ] Apple OAuth
+
+### Builder
+- [x] Content mode
+- [x] Block-based field creation
+- [x] Drag-and-drop ordering
+- [ ] Workflow mode
+- [ ] Conditional logic
+- [ ] Additional field types
+
+### Themes
+- [ ] Overworld
+- [ ] Nether
+- [ ] Professional
+- [ ] College/Festival
+- [ ] Theme persistence and picker refinement
+
+### Templates & Discovery
+- [ ] Template gallery
+- [ ] Template cloning
+- [ ] Explore page
+- [ ] Public/unlisted visibility
+
+### Advanced
+- [ ] Analytics
+- [ ] Email flows
+- [ ] CSV export
+- [ ] QR sharing
+- [ ] Custom slugs
+- [ ] Password-protected forms
+- [ ] Form expiry
+- [ ] Response limits
+- [ ] Form cloning/archive
+- [ ] API improvements
+
+---
+
+## 🎯 Project Vision
+
+BlockForm is not intended to be:
+
+> "Google Forms with Minecraft colors."
+
+The goal is to combine:
+
+```text
+Fast Form Building
+        +
+Reusable Templates
+        +
+Distinctive Themes
+        +
+Interactive Respondent Experiences
+```
+
+The underlying form model stays consistent while the experience around it can change dramatically.
+
+A professional business survey, a college festival registration, and an immersive themed questionnaire should all be powered by the same BlockForm form engine.
+
+---
+
+## 📄 License
+
+Add your preferred license here.
