@@ -57,16 +57,80 @@ function getApiBaseUrl(): string {
 }
 
 export function OAuthGroup() {
+  const [showToast, setShowToast] = React.useState(false)
+  const toastTimer = React.useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const handleComingSoon = () => {
+    if (toastTimer.current) clearTimeout(toastTimer.current)
+    setShowToast(true)
+    toastTimer.current = setTimeout(() => setShowToast(false), 2500)
+  }
+
   const handleGitHubSignIn = () => {
     const baseUrl = getApiBaseUrl()
     window.location.href = `${baseUrl}/api/auth/github`
   }
 
   return (
-    <div className="flex gap-2">
-      <OAuthButton label="Google" icon={<GoogleIcon />} />
-      <OAuthButton label="GitHub" icon={<GitHubIcon />} onClick={handleGitHubSignIn} />
-      <OAuthButton label="Apple" icon={<AppleIcon />} />
+    <div className="relative flex flex-col gap-2">
+      {/* Coming Soon Toast */}
+      <div
+        style={{
+          position: 'absolute',
+          top: '-54px',
+          left: '50%',
+          transform: `translateX(-50%) translateY(${showToast ? '0' : '6px'})`,
+          opacity: showToast ? 1 : 0,
+          pointerEvents: 'none',
+          transition: 'opacity 0.2s ease, transform 0.2s ease',
+          whiteSpace: 'nowrap',
+          zIndex: 50,
+        }}
+      >
+        <div
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '7px',
+            padding: '7px 13px',
+            background: 'linear-gradient(135deg, #1a2030 0%, #161b22 100%)',
+            border: '1px solid rgba(106,191,60,0.3)',
+            borderRadius: '8px',
+            boxShadow: '0 4px 20px rgba(0,0,0,0.5), 0 0 0 1px rgba(106,191,60,0.08)',
+          }}
+        >
+          {/* Pixel icon */}
+          <svg width="8" height="8" viewBox="0 0 8 8" style={{ imageRendering: 'pixelated', flexShrink: 0 }}>
+            <rect x="0" y="0" width="4" height="4" fill="#6abf3c" />
+            <rect x="4" y="4" width="4" height="4" fill="#4e9c2e" />
+            <rect x="4" y="0" width="4" height="4" fill="#3d7020" />
+            <rect x="0" y="4" width="4" height="4" fill="#5aad32" />
+          </svg>
+          <span style={{ fontFamily: "'Press Start 2P', monospace", fontSize: '7px', color: '#6abf3c', letterSpacing: '0.08em' }}>
+            COMING SOON
+          </span>
+          {/* Caret */}
+          <div
+            style={{
+              position: 'absolute',
+              bottom: '-5px',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              width: 0,
+              height: 0,
+              borderLeft: '5px solid transparent',
+              borderRight: '5px solid transparent',
+              borderTop: '5px solid rgba(106,191,60,0.3)',
+            }}
+          />
+        </div>
+      </div>
+
+      <div className="flex gap-2">
+        <OAuthButton label="Google" icon={<GoogleIcon />} onClick={handleComingSoon} />
+        <OAuthButton label="GitHub" icon={<GitHubIcon />} onClick={handleGitHubSignIn} />
+        <OAuthButton label="Apple" icon={<AppleIcon />} onClick={handleComingSoon} />
+      </div>
     </div>
   )
 }

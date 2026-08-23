@@ -2,6 +2,26 @@
   "name": "@repo/services",
   "version": "1.0.0",
   "private": true,
+  "exports": {
+    "./clients/github-oauth": "./clients/github-oauth.ts",
+    "./clients/google-oauth": "./clients/google-oauth.ts",
+    "./user": "./user/index.ts",
+    "./form": "./form/index.ts",
+    "./form-field": "./form-field/index.ts",
+    "./form-submission": "./form-submission/index.ts",
+    "./env": "./env.ts"
+  },
+  "typesVersions": {
+    "*": {
+      "clients/github-oauth": ["./clients/github-oauth.ts"],
+      "clients/google-oauth": ["./clients/google-oauth.ts"],
+      "user": ["./user/index.ts"],
+      "form": ["./form/index.ts"],
+      "form-field": ["./form-field/index.ts"],
+      "form-submission": ["./form-submission/index.ts"],
+      "env": ["./env.ts"]
+    }
+  },
   "devDependencies": {
     "@repo/eslint-config": "workspace:*",
     "@repo/typescript-config": "workspace:*",
