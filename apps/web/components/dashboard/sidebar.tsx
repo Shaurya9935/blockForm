@@ -14,6 +14,7 @@ import {
 } from './icons'
 import { BlockSeparator } from './thumbnails'
 import { NavItem } from './types'
+import { useGetLoggedInUserInfo } from '~/hooks/api/auth'
 
 export function NavBtn({
   item,
@@ -286,162 +287,148 @@ export function Sidebar({
         </nav>
 
         {/* ── User profile ─────────────────────────────────────────── */}
-        <div
-          style={{
-            borderTop: '1px solid #1a2030',
-            padding: '14px 16px',
-            flexShrink: 0,
-            backgroundColor: '#090d11',
-          }}
-        >
-          {/* Upgrade banner */}
-          {/* <div
-            style={{
-              marginBottom: 12,
-              padding: '9px 12px',
-              backgroundColor: 'rgba(106,191,60,0.06)',
-              border: '1px solid rgba(106,191,60,0.14)',
-              borderRadius: 8,
-              display: 'flex',
-              alignItems: 'center',
-              gap: 10,
-            }}
-          >
-            <svg width="16" height="16" viewBox="0 0 16 16" style={{ imageRendering: 'pixelated', flexShrink: 0 }}>
-              <rect x="1" y="7" width="8" height="8" fill="#6abf3c" />
-              <rect x="1" y="7" width="8" height="3" fill="#7dd44a" />
-              <rect x="1" y="7" width="3" height="8" fill="#4e9c2e" />
-              <rect x="9" y="1" width="6" height="6" fill="#4e9c2e" />
-              <rect x="9" y="1" width="6" height="2" fill="#6abf3c" />
-            </svg>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: 11, fontWeight: 700, color: '#a3e063', lineHeight: 1.3 }}>
-                Unlock Pro
-              </div>
-              <div style={{ fontSize: 10, color: '#4e5a6a', marginTop: 1 }}>
-                Unlimited forms & analytics
-              </div>
-            </div>
-            <button
-              style={{
-                flexShrink: 0,
-                backgroundColor: '#6abf3c',
-                border: 'none',
-                borderRadius: 5,
-                color: '#0d1117',
-                fontSize: 10,
-                fontWeight: 800,
-                fontFamily: "'Outfit', sans-serif",
-                cursor: 'pointer',
-                padding: '4px 10px',
-                transition: 'background-color 0.15s',
-                whiteSpace: 'nowrap',
-              }}
-              onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.backgroundColor = '#7dd44a')}
-              onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.backgroundColor = '#6abf3c')}
-            >
-              Upgrade
-            </button>
-          </div> */}
-
-          {/* User row */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <div
-              style={{
-                width: 34,
-                height: 34,
-                borderRadius: 8,
-                background: 'linear-gradient(135deg, #5D9E2F 0%, #2a5014 100%)',
-                border: '1.5px solid rgba(106,191,60,0.25)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: 12,
-                fontWeight: 800,
-                color: '#eceae4',
-                flexShrink: 0,
-                fontFamily: "'Outfit', sans-serif",
-                letterSpacing: '0.5px',
-              }}
-            >
-              SG
-            </div>
-
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div
-                style={{
-                  fontSize: 13,
-                  fontWeight: 700,
-                  color: '#c8d8b8',
-                  whiteSpace: 'nowrap',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  lineHeight: 1.3,
-                }}
-              >
-                Shaurya Gupta
-              </div>
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 4,
-                  marginTop: 2,
-                }}
-              >
-                <div
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: 3,
-                    backgroundColor: '#1a2030',
-                    border: '1px solid #21262d',
-                    borderRadius: 4,
-                    padding: '1px 6px',
-                  }}
-                >
-                  <div
-                    style={{
-                      width: 4,
-                      height: 4,
-                      borderRadius: 1,
-                      backgroundColor: '#4e5a6a',
-                      imageRendering: 'pixelated',
-                    }}
-                  />
-                  <span style={{ fontSize: 10, color: '#4e5a6a', fontWeight: 600 }}>Free Plan</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Settings shortcut */}
-            <button
-              style={{
-                background: 'none',
-                border: 'none',
-                color: '#3d4d5d',
-                cursor: 'pointer',
-                padding: 4,
-                borderRadius: 5,
-                display: 'flex',
-                alignItems: 'center',
-                transition: 'color 0.15s, background 0.15s',
-              }}
-              onMouseEnter={(e) => {
-                ;(e.currentTarget as HTMLElement).style.color = '#8b9ab0'
-                ;(e.currentTarget as HTMLElement).style.backgroundColor = 'rgba(255,255,255,0.04)'
-              }}
-              onMouseLeave={(e) => {
-                ;(e.currentTarget as HTMLElement).style.color = '#3d4d5d'
-                ;(e.currentTarget as HTMLElement).style.backgroundColor = 'transparent'
-              }}
-              title="Settings"
-            >
-              <IconSettings />
-            </button>
-          </div>
-        </div>
+        <UserFooter />
       </aside>
     </>
+  )
+}
+
+function SignOutIcon() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+      <polyline points="16 17 21 12 16 7" />
+      <line x1="21" y1="12" x2="9" y2="12" />
+    </svg>
+  )
+}
+
+function UserFooter() {
+  const { user } = useGetLoggedInUserInfo()
+  const [signingOut, setSigningOut] = useState(false)
+
+  const initials = user?.fullName
+    ? user.fullName.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase()
+    : '??'
+
+  const handleSignOut = async () => {
+    if (signingOut) return
+    setSigningOut(true)
+    try {
+      const apiBase = (process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/trpc')
+        .replace(/\/trpc\/?$/, '')
+      await fetch(`${apiBase}/api/auth/signout`, {
+        method: 'GET',
+        credentials: 'include',
+      })
+    } catch {
+      // network error — proceed anyway
+    }
+    // Hard redirect so Next.js router cache doesn't keep stale user data
+    window.location.replace('/signin')
+  }
+
+  return (
+    <div
+      style={{
+        borderTop: '1px solid #1a2030',
+        padding: '14px 16px',
+        flexShrink: 0,
+        backgroundColor: '#090d11',
+      }}
+    >
+      {/* User row */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        {/* Avatar */}
+        <div
+          style={{
+            width: 34,
+            height: 34,
+            borderRadius: 8,
+            background: 'linear-gradient(135deg, #5D9E2F 0%, #2a5014 100%)',
+            border: '1.5px solid rgba(106,191,60,0.25)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: 12,
+            fontWeight: 800,
+            color: '#eceae4',
+            flexShrink: 0,
+            fontFamily: "'Outfit', sans-serif",
+            letterSpacing: '0.5px',
+          }}
+        >
+          {initials}
+        </div>
+
+        {/* Name + plan */}
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div
+            style={{
+              fontSize: 13,
+              fontWeight: 700,
+              color: '#c8d8b8',
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              lineHeight: 1.3,
+            }}
+          >
+            {user?.fullName ?? '—'}
+          </div>
+          <div
+            style={{
+              fontSize: 10,
+              color: '#4e5a6a',
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              marginTop: 1,
+            }}
+          >
+            {user?.email ?? ''}
+          </div>
+        </div>
+
+        {/* Sign-out button */}
+        <button
+          onClick={handleSignOut}
+          disabled={signingOut}
+          title="Sign out"
+          style={{
+            background: 'none',
+            border: 'none',
+            color: '#3d4d5d',
+            cursor: signingOut ? 'not-allowed' : 'pointer',
+            padding: 6,
+            borderRadius: 6,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexShrink: 0,
+            transition: 'color 0.15s, background 0.15s',
+            opacity: signingOut ? 0.5 : 1,
+          }}
+          onMouseEnter={(e) => {
+            if (!signingOut) {
+              ;(e.currentTarget as HTMLElement).style.color = '#ef4444'
+              ;(e.currentTarget as HTMLElement).style.backgroundColor = 'rgba(239,68,68,0.08)'
+            }
+          }}
+          onMouseLeave={(e) => {
+            ;(e.currentTarget as HTMLElement).style.color = '#3d4d5d'
+            ;(e.currentTarget as HTMLElement).style.backgroundColor = 'transparent'
+          }}
+        >
+          {signingOut ? (
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="animate-spin">
+              <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4" />
+            </svg>
+          ) : (
+            <SignOutIcon />
+          )}
+        </button>
+      </div>
+    </div>
   )
 }

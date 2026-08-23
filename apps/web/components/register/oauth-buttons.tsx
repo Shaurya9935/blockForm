@@ -50,12 +50,24 @@ export function OAuthButton({
   )
 }
 
+function getApiBaseUrl(): string {
+  // Strip the /trpc suffix if present (NEXT_PUBLIC_API_URL may point at /trpc)
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/trpc'
+  return apiUrl.replace(/\/trpc\/?$/, '')
+}
+
 export function OAuthGroup() {
+  const handleGitHubSignIn = () => {
+    const baseUrl = getApiBaseUrl()
+    window.location.href = `${baseUrl}/api/auth/github`
+  }
+
   return (
     <div className="flex gap-2">
       <OAuthButton label="Google" icon={<GoogleIcon />} />
-      <OAuthButton label="GitHub" icon={<GitHubIcon />} />
+      <OAuthButton label="GitHub" icon={<GitHubIcon />} onClick={handleGitHubSignIn} />
       <OAuthButton label="Apple" icon={<AppleIcon />} />
     </div>
   )
 }
+

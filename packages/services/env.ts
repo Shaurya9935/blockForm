@@ -5,6 +5,9 @@ const envSchema = z.object({
     GOOGLE_OAUTH_CLIENT_ID: z.string().optional().describe('Google OAuth Client ID'),
     GOOGLE_OAUTH_CLIENT_SECRET: z.string().optional().describe('Google OAuth Client Secret'),
     GOOGLE_OAUTH_REDIRECT_URI: z.string().optional().describe('Google OAuth Redirect URI'),
+    GITHUB_CLIENT_ID: z.string().optional().describe('GitHub OAuth App Client ID'),
+    GITHUB_CLIENT_SECRET: z.string().optional().describe('GitHub OAuth App Client Secret'),
+    GITHUB_CALLBACK_URL: z.string().optional().describe('GitHub OAuth callback URL'),
 });
 
 function createEnv(env: NodeJS.ProcessEnv) {

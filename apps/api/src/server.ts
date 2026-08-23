@@ -7,6 +7,7 @@ import { generateOpenApiDocument, createOpenApiExpressMiddleware } from "trpc-to
 import { apiReference } from "@scalar/express-api-reference";
 
 import { serverRouter, createContext } from "@repo/trpc/server";
+import { githubOAuthRouter } from "./routes/github-oauth";
 
 import { env } from "./env";
 
@@ -44,6 +45,9 @@ app.get("/openapi.json", (req, res) => {
 
 logger.debug(`docs: ${apiBaseUrl}/docs`);
 app.use("/docs", apiReference({ url: "/openapi.json" }));
+
+// GitHub OAuth — must be mounted BEFORE the OpenAPI catch-all
+app.use('/api/auth', githubOAuthRouter);
 
 app.use(
   "/api",

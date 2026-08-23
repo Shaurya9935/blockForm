@@ -71,3 +71,28 @@ export const useGetLoggedInUserInfo = () => {
     refetch,
   };
 };
+
+export const useSignOut = () => {
+  const utils = trpc.useUtils();
+
+  const {
+    mutateAsync: signOutAsync,
+    mutate: signOut,
+    isPending,
+    isError,
+    error,
+  } = trpc.auth.signOut.useMutation({
+    onSuccess: () => {
+      // Wipe cached user data immediately
+      utils.auth.getLoggedInUserInfo.reset();
+    },
+  });
+
+  return {
+    signOut,
+    signOutAsync,
+    isPending,
+    isError,
+    error,
+  };
+};

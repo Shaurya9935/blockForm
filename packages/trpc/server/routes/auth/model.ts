@@ -27,3 +27,7 @@ export const getLoggedInUserInfoOutputModel = z.object({
     email: z.email().describe('email of the user'),
     profileImageUrl: z.string().describe('profile image of the user ').optional().nullable()
 })
+
+export const signOutOutputModel = z.object({
+    success: z.boolean()
+})
