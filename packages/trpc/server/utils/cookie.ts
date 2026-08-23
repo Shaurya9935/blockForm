@@ -7,21 +7,39 @@ const ONE_DAY = 24 * ONE_HOUR;
 const ONE_MONTH = 30 * ONE_DAY;
 const ONE_YEAR = 12 * ONE_MONTH;
 
-const defaultCookieOption: CookieOptions = {
-  path: "/",
-  httpOnly: true,
-  secure: false,
-  sameSite: "strict",
-  maxAge: ONE_YEAR,
-};
+export function isProductionEnvironment(): boolean {
+  const nodeEnv = process.env.NODE_ENV as string | undefined;
+  return (
+    nodeEnv === "production" ||
+    nodeEnv === "prod" ||
+    Boolean(process.env.RENDER) ||
+    Boolean(process.env.VERCEL) ||
+    Boolean(process.env.FRONTEND_URL && process.env.FRONTEND_URL.startsWith("https://"))
+  );
+}
+
+export function getDefaultCookieOptions(): CookieOptions {
+  const isProduction = isProductionEnvironment();
+  return {
+    path: "/",
+    httpOnly: true,
+    secure: isProduction,
+    sameSite: isProduction ? "none" : "lax",
+    maxAge: ONE_YEAR,
+  };
+}
 
 export function createCookieFactory(res: Response) {
   return function createCookie(
     name: string,
     value: string,
-    opts: CookieOptions = defaultCookieOption,
+    opts?: CookieOptions,
   ) {
-    res.cookie(name, value, opts);
+    const finalOpts: CookieOptions = {
+      ...getDefaultCookieOptions(),
+      ...opts,
+    };
+    res.cookie(name, value, finalOpts);
   };
 }
 
@@ -43,8 +61,15 @@ export function getCookieFactory(req: Request) {
 }
 
 export function clearCookieFactory(res: Response) {
-  return function clearCookie(name: string) {
-    res.clearCookie(name);
+  return function clearCookie(name: string, opts?: CookieOptions) {
+    const defaultOpts = getDefaultCookieOptions();
+    res.clearCookie(name, {
+      path: defaultOpts.path,
+      httpOnly: defaultOpts.httpOnly,
+      secure: defaultOpts.secure,
+      sameSite: defaultOpts.sameSite,
+      ...opts,
+    });
   };
 }
 
@@ -60,3 +85,4 @@ export function getAuthenticationCookie(ctx: TRPCContext) {
 export function clearAuthenticationCookie(ctx: TRPCContext) {
   ctx.clearCookie(AUTHENTICATE_COOKIE_NAME);
 }
+

@@ -7,14 +7,34 @@ const userService = new UserService();
 export const githubOAuthRouter = Router();
 
 // The URL to redirect users back to on the frontend after successful OAuth
-const FRONTEND_CALLBACK_URL = process.env.FRONTEND_URL ?? 'http://localhost:3000';
+const FRONTEND_CALLBACK_URL = (process.env.FRONTEND_URL ? process.env.FRONTEND_URL.replace(/\/$/, '') : null) ?? 'http://localhost:3000';
+
+function getAuthCookieOptions() {
+  const nodeEnv = process.env.NODE_ENV as string | undefined;
+  const isProduction =
+    nodeEnv === 'production' ||
+    nodeEnv === 'prod' ||
+    Boolean(process.env.RENDER) ||
+    Boolean(process.env.VERCEL) ||
+    Boolean(process.env.FRONTEND_URL && process.env.FRONTEND_URL.startsWith('https://'));
+
+  return {
+    path: '/',
+    httpOnly: true,
+    secure: isProduction,
+    sameSite: (isProduction ? 'none' : 'lax') as 'none' | 'lax',
+    maxAge: 365 * 24 * 60 * 60 * 1000,
+  };
+}
 
 // Sign out — clears the auth cookie (no auth required; harmless if already expired)
 githubOAuthRouter.get('/signout', (_req: Request, res: Response) => {
+  const cookieOpts = getAuthCookieOptions();
   res.clearCookie('authentication-token', {
-    path: '/',
-    httpOnly: true,
-    sameSite: 'lax',
+    path: cookieOpts.path,
+    httpOnly: cookieOpts.httpOnly,
+    secure: cookieOpts.secure,
+    sameSite: cookieOpts.sameSite,
   });
   return res.json({ success: true });
 });
@@ -49,16 +69,8 @@ githubOAuthRouter.get('/github/callback', async (req: Request, res: Response) =>
       profileImageUrl: githubUser.avatar_url,
     });
 
-    // Set the authentication cookie (lax sameSite so the redirect from
-    // this domain to the frontend domain carries the cookie)
-    const ONE_YEAR = 365 * 24 * 60 * 60 * 1000;
-    res.cookie('authentication-token', token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      path: '/',
-      maxAge: ONE_YEAR,
-    });
+    // Set the authentication cookie with cross-site support
+    res.cookie('authentication-token', token, getAuthCookieOptions());
 
     // Redirect the browser back to the frontend dashboard
     return res.redirect(`${FRONTEND_CALLBACK_URL}/dashboard`);

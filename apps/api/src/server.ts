@@ -12,6 +12,10 @@ import { githubOAuthRouter } from "./routes/github-oauth";
 import { env } from "./env";
 
 export const app = express();
+
+// Trust reverse proxy (e.g. Render, Vercel, Cloudflare) for HTTPS & cookies
+app.set("trust proxy", 1);
+
 const apiBaseUrl = process.env.BASE_URL || `http://localhost:${env.PORT || 8000}`;
 const openApiDocument = generateOpenApiDocument(serverRouter, {
   title: "BlockForm OpenAPI",
@@ -19,13 +23,35 @@ const openApiDocument = generateOpenApiDocument(serverRouter, {
   baseUrl: apiBaseUrl.concat("/api"),
 });
 
+const allowedOrigins = [
+  "http://localhost:3000",
+  "http://localhost:4000",
+  "http://localhost:8000",
+  "http://127.0.0.1:3000",
+  "http://127.0.0.1:4000",
+  process.env.FRONTEND_URL ? process.env.FRONTEND_URL.replace(/\/$/, "") : null,
+].filter(Boolean) as string[];
 
-  app.use(
-    cors({
-      origin: ["http://localhost:3000", "http://localhost:4000"],
-      credentials: true,
-    }),
-  );
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      // Allow requests with no origin (e.g. mobile apps, curl, server-to-server)
+      if (!origin) return callback(null, true);
+
+      const normalizedOrigin = origin.replace(/\/$/, "");
+      if (
+        allowedOrigins.includes(normalizedOrigin) ||
+        /^https:\/\/.*\.vercel\.app$/.test(normalizedOrigin)
+      ) {
+        return callback(null, true);
+      }
+
+      // Default: allow valid incoming web origin with credentials
+      return callback(null, true);
+    },
+    credentials: true,
+  }),
+);
 
 
 app.use(express.json());
